@@ -20,7 +20,9 @@
       comment is 'Just loads the xml and pprints it'
    ]).
 
-   xml_test :- xml_loader("/home/eugeneai/projects/code/rpd-processor/data/xml/B1.O.30_Sistemy_iskusstvennogo_intellekta_4003.pdf.xml")::pprint.
+   xml_test :- 
+      O = xml_loader("/home/eugeneai/projects/code/rpd-processor/data/xml/B1.O.30_Sistemy_iskusstvennogo_intellekta_4003.pdf.xml"),
+      O::pprint.
 
 
 
