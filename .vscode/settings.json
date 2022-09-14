@@ -1,0 +1,5 @@
+{
+    "diffEditor.codeLens": true,
+    "editor.fontFamily": "'Fira Code Regular', 'monospace', monospace",
+    "editor.fontSize": 20
+}
