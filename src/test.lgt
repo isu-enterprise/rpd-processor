@@ -27,7 +27,7 @@
       comment is 'Just loads the xml and pprints it'
    ]).
 
-   xml_test :- 
+   xml_test :-
       xml_file_name(Name),
       O = xml_loader(Name),
       O::pprint.
