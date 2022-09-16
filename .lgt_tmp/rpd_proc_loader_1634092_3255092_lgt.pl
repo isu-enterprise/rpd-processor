@@ -1,0 +1,5 @@
+:-(set_prolog_flag(stack_limit,8147483648)).
+:-(multifile(/('$lgt_loaded_file_',7))).
+:-(dynamic(/('$lgt_loaded_file_',7))).
+'$lgt_loaded_file_'('rpd_proc_loader.lgt','/home/eugeneai/projects/code/rpd-processor/',normal,[],[],'/home/eugeneai/projects/code/rpd-processor/.lgt_tmp/rpd_proc_loader_1634092_3255092_lgt.pl',1663286296.0485113).
+:-(initialization(','('$lgt_set_compiler_flag'(report,warnings),','('$lgt_set_compiler_flag'(events,allow),','('$lgt_set_compiler_flag'(debug,on),','('$lgt_logtalk_load'(tutor(loader),'/home/eugeneai/projects/code/rpd-processor/',c(user,user,r(user,user,[],[]))),','('$lgt_logtalk_load'(tools(loader),'/home/eugeneai/projects/code/rpd-processor/',c(user,user,r(user,user,[],[]))),','('$lgt_logtalk_load'(debugger(loader),'/home/eugeneai/projects/code/rpd-processor/',c(user,user,r(user,user,[],[]))),','('$lgt_logtalk_load'(['src/xml_loader_1','src/as_db_1','src/test'],'/home/eugeneai/projects/code/rpd-processor/',c(user,user,r(user,user,[],[]))),','(::(test,run),','(::(test,db_test),true))))))))))).

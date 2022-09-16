@@ -12,11 +12,11 @@
     % load the project source files
     logtalk_load([
         'src/xml_loader_1',
-        'src/as_order_1',
+        'src/as_db_1',
         'src/test']),
     % debugger::debug,
     % pkt_run::run,
     test::run,
-    test::xml_test,
+    test::db_test,
     true
 )).

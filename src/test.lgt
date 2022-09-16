@@ -8,6 +8,13 @@
       comment is 'Test and run predicates'
    ]).
 
+   :- protected(xml_file_name/0).
+   :- info(xml_file_name/0, [
+      comment is 'Defines file name for esting'
+   ]).
+
+   xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/B1.O.30_Sistemy_iskusstvennogo_intellekta_4003.pdf.xml").
+
    :- public(run/0).
    :- info(run/0, [
       comment is 'Issues and informative message'
@@ -21,9 +28,21 @@
    ]).
 
    xml_test :- 
-      O = xml_loader("/home/eugeneai/projects/code/rpd-processor/data/xml/B1.O.30_Sistemy_iskusstvennogo_intellekta_4003.pdf.xml"),
+      xml_file_name(Name),
+      O = xml_loader(Name),
       O::pprint.
 
+   :- public(db_test/0).
+   :- info(db_test/0, [
+      comment is 'Testing conversion to datbase.'
+   ]).
+
+   db_test :-
+      xml_file_name(Name),
+      XML = xml_loader(Name),
+      O = as_db(XML),
+      O::convert,
+      O::print.
 
 
 
