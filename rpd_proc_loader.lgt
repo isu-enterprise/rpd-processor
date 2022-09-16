@@ -13,10 +13,11 @@
     logtalk_load([
         'src/xml_loader_1',
         'src/as_db_1',
+        'src/text_attrib_1',
         'src/test']),
     % debugger::debug,
     % pkt_run::run,
     test::run,
-    test::db_test,
+    test::attrib_test,
     true
 )).

@@ -44,6 +44,18 @@
       O::convert,
       O::print.
 
+   :- public(attrib_test/0).
+   :- info(attrib_test/0, [
+      comment is 'Test of additional attribute setting.'
+   ]).
+
+   attrib_test :-
+      xml_file_name(Name),
+      XML = xml_loader(Name),
+      O = text_attrib(XML),
+      O::convert,
+      O::process,
+      O::print.
 
 
 :- end_object.

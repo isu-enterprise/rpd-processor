@@ -57,6 +57,9 @@
 	text_name(text,text).
 	text_name(i,itelic).
 
+	:- public(element/5).
+	:- protected(range/2).
+
 	:- dynamic(element/5).
 	:- dynamic(range/2).
 
