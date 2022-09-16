@@ -43,7 +43,7 @@
 
 	convert1(element(text, Attrs, [element(Tag, [], [String])]), Parent, N, []) :- !,
 		text_name(Tag, ExtTag),
-		assertz(element(N, Parent, ExtTag, [ExtTag=true|Attrs], String)).
+		assertz(element(N, Parent, text, [ExtTag=true|Attrs], String)).
 				
 	convert1(element(Name, Attrs, [String]), Parent, N, []) :-
 		text_name(Name,ExtName), !, 
