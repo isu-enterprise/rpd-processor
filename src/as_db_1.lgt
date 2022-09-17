@@ -90,11 +90,35 @@
 		range(Start, End),
 		forall(gen(Start, End, N), printn(_, N)).
 
+    :- public(gen/3).
+    :- info(gen/3, [
+       comment is 'Generates number from Start to End into N'
+    ]).
+
 	gen(Start, End, Start) :- Start =< End.
 	gen(Start, End, N) :-
 		Start =< End,
 		Start1 is Start + 1,
 		gen(Start1, End, N).
+
+    :- public(gen/1).
+    :- info(gen/1, [
+       comment is 'Generates number into N for all elements in order'
+    ]).
+
+    gen(N) :-
+       range(Start, End), !,
+       gen(Start, End, N).
+
+    :- public(neighbor/2).
+    :- info(neighbor/2, [
+       comment is 'Two lines are neighbors and have same tag = text, page'
+    ]).
+
+    neighbor(element(N1, Par, Tag, Attrs1, S1), element(N2, Par, Tag, Attrs2, S2)) :-
+       range(_, End), N1 < End, !,
+       gen(N1, End, N2),
+       element(N2, Par, Tag, Attrs2, S2), !.
 
 	:- public(print/1).
 	:- info(print/1, [
@@ -102,8 +126,7 @@
 	]).
 
 	print(Tag) :-
-		range(Start, End),
-		forall(gen(Start, End, N), printn(Tag, N)).
+		forall(gen(N), printn(Tag, N)).
 
 	:- protected(replace/2).
 	:- info(replace/2, [

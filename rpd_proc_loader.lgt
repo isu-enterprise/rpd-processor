@@ -13,8 +13,9 @@
     logtalk_load([
         'src/xml_loader_1',
         'src/as_db_1',
-        'src/text_attrib_1',
-        'src/recognizer',
+        'src/text_attrib',
+        'src/text_merge',
+        'src/recognizer_1',
 
         'src/test']),
     % debugger::debug,

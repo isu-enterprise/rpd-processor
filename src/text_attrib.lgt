@@ -28,7 +28,7 @@
 		option(width(AWidth), As),
 		option(textleft(PLeft), PAs),
 		option(textwidth(PWidth), PAs),
-		::deviation(_, DC),!,
+		::deviation(attributes, [_, DC]),!,
 		PCenter is div(PWidth, 2) + PLeft,
 		ACenter is div(AWidth, 2) + ALeft,
 		DCenter is abs(PCenter - ACenter), !,
@@ -43,16 +43,16 @@
 
 	%%%% deviation(10, 50).  % DEFINED in the composed object
 
-	:- public(process/0).
-	:- info(process/0, [
+	:- public(process_attrs/0).
+	:- info(process_attrs/0, [
 		comment is 'Process all rules of denoted by subsets'
 	]).
 
-    process :-
+    process_attrs :-
         process(textsize),
         process(center_text).
 
-	:- public(process/1).
+	:- protected(process/1).
 	:- info(process/1, [
 		comment is 'Process all rules of set defined by the argument'
 	]).
