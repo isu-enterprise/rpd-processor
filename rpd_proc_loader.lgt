@@ -5,6 +5,7 @@
     set_logtalk_flag(report, warnings),
     set_logtalk_flag(events, allow),
     set_logtalk_flag(debug, on),
+    set_prolog_flag(verbose_load, true),
     logtalk_load(tutor(loader)),
     logtalk_load(tools(loader)),  % debugging, tracing, trace
     logtalk_load(debugger(loader)),  % debugging
@@ -14,6 +15,7 @@
         'src/xml_loader_1',
         'src/as_db_1',
         'src/text_attrib',
+        'src/text_features',
         'src/text_merge',
         'src/recognizer_1',
 

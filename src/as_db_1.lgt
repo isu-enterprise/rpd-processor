@@ -164,4 +164,29 @@
     append(A) :-
         assertz(A).
 
+    :- public(gettext/2).
+    :- info(gettext/2, [
+    comment is 'Joins all components of list or string in a string'
+    ]).
+
+    gettext([], "") :- !.
+    gettext(S, S) :- string(S), !.
+    gettext([X|T], S) :-
+        gettext(X, XS),
+        gettext(T, TS),
+        string_concat(XS, TS, S).
+
+    :- public(lstrip/3).
+    :- info(lstrip/3, [
+    comment is 'Eliminate spaces at the start of a string'
+    ]).
+
+    lstrip(S, SSS, Ch) :-
+       sub_string(S,0,1,After,Ch),
+       sub_string(S,1,After,0,SS), !,
+       lstrip(SS,SSS,Ch).
+    lstrip(S,S, _).
+
+
+
 :- end_object.

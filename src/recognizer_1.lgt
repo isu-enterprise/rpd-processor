@@ -1,6 +1,6 @@
 :- object(recognizer(_XML_),
    extends(as_db(_XML_)),
-   imports([text_attrib, text_merge])).
+   imports([text_attrib, text_features, text_merge])).
 
    :- info([
       version is 1:0:0,
@@ -19,6 +19,8 @@
 
    deviation(attributes, [10, 50]).
    deviation(paragraph, [3, 10]).
+   deviation(parindent, [28]).  % 1 cm = 28 pt
+
 
    :- public(process/0).
    :- info(process/0, [
@@ -27,7 +29,9 @@
 
    process :-
       ::process_attrs, !,
-      ::process_merge.
+      ::process_features, !,
+      ::process_merge, !,
+      true.
 
 
 :- end_object.
