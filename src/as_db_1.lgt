@@ -115,9 +115,10 @@
        comment is 'Two lines are neighbors and have same tag = text, page'
     ]).
 
-    neighbor(element(N1, Par, Tag, Attrs1, S1), element(N2, Par, Tag, Attrs2, S2)) :-
+    neighbor(element(N1, Par, Tag, _, _), element(N2, Par, Tag, Attrs2, S2)) :-
        range(_, End), N1 < End, !,
-       gen(N1, End, N2),
+       Start is N1 + 1,
+       gen(Start, End, N2),
        element(N2, Par, Tag, Attrs2, S2), !.
 
 	:- public(print/1).
@@ -138,5 +139,29 @@
         % format("RETRACT ALL:~w-~w-~w ~w '~w'\n", [N, P, Na, Aa, S])),
 		retract(A),
 		asserta(B).   % Assuming all conversions are made from up to down
+
+    :- public(remove/1).
+    :- info(remove/1, [
+       comment is 'Removes a database element.'
+    ]).
+
+    remove(A) :-
+        retract(A).
+
+    :- public(prepend/1).
+    :- info(prepend/1, [
+        comment is 'AssertA a database element.'
+    ]).
+
+    prepend(A) :-
+        asserta(A).
+
+    :- public(append/1).
+    :- info(append/1, [
+        comment is 'AssertZ a database element.'
+    ]).
+
+    append(A) :-
+        assertz(A).
 
 :- end_object.

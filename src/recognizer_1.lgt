@@ -9,6 +9,9 @@
       comment is 'Complex of recognizing procedures run on a page and line sets'
    ]).
 
+   :- use_module(lists, [member/2]).
+   :- use_module(library(option), [option/2, option/3]).
+
    :- protected(deviation/2).
    :- info(deviation/2, [
       comment is 'Local definition of deviation coefficients'
