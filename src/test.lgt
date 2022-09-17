@@ -57,5 +57,4 @@
       O::process,
       O::print.
 
-
 :- end_object.

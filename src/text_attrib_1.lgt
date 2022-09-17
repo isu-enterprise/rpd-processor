@@ -10,7 +10,7 @@
 	]).
 
 	:- use_module(lists, [member/2]).
-	:- use_module(library(option), 
+	:- use_module(library(option),
 		[option/2, option/3]).
 
 	:- public(centered/2).
@@ -19,16 +19,16 @@
 	]).
 
 	centered(element(N, Parent, text, Attrs, String), element(N, Parent, text, [centered=true|Attrs], String)):-
-		element(Parent, _, page, PAttrs, _),
+		::element(Parent, _, page, PAttrs, _),
 		at_center(Attrs, PAttrs).
-	
+
 	at_center(As, PAs) :-
 		option(left(ALeft), As),
 		% option(left(PLeft), PAs),
 		option(width(AWidth), As),
 		option(width(PWidth), PAs),
 		deviation(_, DC),!,
-		PCenter is div(PWidth, 2), 
+		PCenter is div(PWidth, 2),
 		ACenter is div(AWidth, 2) + ALeft,
 		DCenter is abs(PCenter - ACenter), !,
 		DCenter < DC.
@@ -49,6 +49,7 @@
 
 	process:-
 		forall(::element(N,P,T,A,S), rule(element(N,P,T,A,S))).
+		%forall(::element(N,P,T,A,S), format("QQ~w-~w-~w ~w '~w'\n", [N, P, T, A, S])).
 
 	:- protected(rule/1).
 	:- info(rule/1, [
@@ -63,12 +64,20 @@
 
 	:- protected(replace/2).
 	:- info(replace/2, [
-		comment is 'Replaces a fact in database'
+		comment is 'Replaces a fact in object database'
 	]).
 
 	replace(A,B) :-
 		retractall(A),
 		asserta(B).
-		
+
+    % :- public(print0/0).
+    % :- info(print0/0, [
+    %     comment is 'Prints content unordered. Used for testing'
+    % ]).
+
+    % print0 :-
+    %        forall(::el(N, P, Na, A, S), format("~w-~w-~w ~w '~w'\n", [N, P, Na, A, S])).
+
 
 :- end_object.
