@@ -1,6 +1,5 @@
 
-:- object(text_attrib(_XML_),
-	extends(as_db(_XML_))).
+:- category(text_attrib).
 
 	:- info([
 		version is 1:0:0,
@@ -29,20 +28,20 @@
 		option(width(AWidth), As),
 		option(textleft(PLeft), PAs),
 		option(textwidth(PWidth), PAs),
-		deviation(_, DC),!,
+		::deviation(_, DC),!,
 		PCenter is div(PWidth, 2) + PLeft,
 		ACenter is div(AWidth, 2) + ALeft,
 		DCenter is abs(PCenter - ACenter), !,
 		DCenter < DC.
 
-	:- protected(deviation/2).
-	:- info(deviation/2, [
-		comment is 'Deviation parameter.'
-	]).
+	% :- protected(deviation/2).
+	% :- info(deviation/2, [
+	% 	comment is 'Deviation parameter.'
+	% ]).
 
 	% +- deviation(width, center) center assuming stupid indent and shift on the page when printing.
 
-	deviation(10, 50).
+	%%%% deviation(10, 50).  % DEFINED in the composed object
 
 	:- public(process/0).
 	:- info(process/0, [
@@ -108,4 +107,4 @@
     %        forall(::element(N, P, Na, A, S), format("~w-~w-~w ~w '~w'\n", [N, P, Na, A, S])).
 
 
-:- end_object.
+:- end_category.

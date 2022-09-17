@@ -52,7 +52,7 @@
    attrib_test :-
       xml_file_name(Name),
       XML = xml_loader(Name),
-      O = text_attrib(XML),
+      O = recognizer(XML),
       O::convert,
       O::process,
       O::print(_),

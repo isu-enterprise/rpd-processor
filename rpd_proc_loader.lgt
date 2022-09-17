@@ -14,6 +14,8 @@
         'src/xml_loader_1',
         'src/as_db_1',
         'src/text_attrib_1',
+        'src/recognizer',
+
         'src/test']),
     % debugger::debug,
     % pkt_run::run,
