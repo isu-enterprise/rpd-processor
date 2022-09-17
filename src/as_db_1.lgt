@@ -42,12 +42,14 @@
 		N1 is N + 1,
 		convert(RestTerms, N1, N2, N).
 
-	convert1(element(text, Attrs, [element(Tag, [], [String])]), Parent, N, []) :- !,
-		text_name(Tag, ExtTag),
+	convert1(element(text, Attrs, [element(Tag, [], [Atom])]), Parent, N, []) :- !,
+		text_name(Tag, ExtTag), !,
+        atom_string(Atom, String), !,
 		assertz(element(N, Parent, text, [ExtTag=true|Attrs], String)).
 
-	convert1(element(Name, Attrs, [String]), Parent, N, []) :-
+	convert1(element(Name, Attrs, [Atom]), Parent, N, []) :-
 		text_name(Name,ExtName), !,
+        atom_string(Atom, String), !,
 		assertz(element(N, Parent, ExtName, Attrs, String)).
 
 			% Defaults to just assert Name(N, Attrs, Parent)
@@ -79,14 +81,14 @@
 		comment is 'Print list of tags, used in debugging'
 	]).
 
-	print(N) :-
-		::el(N, Parent, Name, Attrs, String), !,
-		format("~w-~w-~w ~w '~w'\n", [N, Parent, Name, Attrs, String]).
-	print(_).
+	printn(Tag, N) :-
+		element(N, Parent, Tag, Attrs, String), !,
+		format("~w-~w-~w ~w '~w'\n", [N, Parent, Tag, Attrs, String]).
+	printn(_, _).
 
 	print :-
 		range(Start, End),
-		forall(gen(Start, End, N), print(N)).
+		forall(gen(Start, End, N), printn(_, N)).
 
 	gen(Start, End, Start) :- Start =< End.
 	gen(Start, End, N) :-
@@ -94,14 +96,24 @@
 		Start1 is Start + 1,
 		gen(Start1, End, N).
 
-    :- public(el/5).
-    :- info(el/5, [
-        comment is 'Returns element contents. Stub'
-    ]).
+	:- public(print/1).
+	:- info(print/1, [
+		comment is 'Print all of tags, supplied as argument used in debugging'
+	]).
 
-    el(N, P, Na, A, S) :-
-          element(N, P, Na, A, S).
+	print(Tag) :-
+		range(Start, End),
+		forall(gen(Start, End, N), printn(Tag, N)).
 
+	:- protected(replace/2).
+	:- info(replace/2, [
+		comment is 'Replaces a fact in object database'
+	]).
 
+	replace(A,B) :-
+        % A = element(N, P, Na, Aa, S)
+        % format("RETRACT ALL:~w-~w-~w ~w '~w'\n", [N, P, Na, Aa, S])),
+		retract(A),
+		asserta(B).   % Assuming all conversions are made from up to down
 
 :- end_object.

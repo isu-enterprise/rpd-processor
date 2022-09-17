@@ -55,6 +55,7 @@
       O = text_attrib(XML),
       O::convert,
       O::process,
-      O::print.
+      O::print(_),
+      true.
 
 :- end_object.

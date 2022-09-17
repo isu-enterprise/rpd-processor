@@ -19,16 +19,18 @@
 	]).
 
 	centered(element(N, Parent, text, Attrs, String), element(N, Parent, text, [centered=true|Attrs], String)):-
+        % format("el(~w,~w,~w,~w,~w)\n",[N, Parent, text, [Attrs,PAttrs], String]),
+        % debugger::trace,
 		::element(Parent, _, page, PAttrs, _),
 		at_center(Attrs, PAttrs).
 
 	at_center(As, PAs) :-
 		option(left(ALeft), As),
-		% option(left(PLeft), PAs),
 		option(width(AWidth), As),
-		option(width(PWidth), PAs),
+		option(textleft(PLeft), PAs),
+		option(textwidth(PWidth), PAs),
 		deviation(_, DC),!,
-		PCenter is div(PWidth, 2),
+		PCenter is div(PWidth, 2) + PLeft,
 		ACenter is div(AWidth, 2) + ALeft,
 		DCenter is abs(PCenter - ACenter), !,
 		DCenter < DC.
@@ -44,32 +46,58 @@
 
 	:- public(process/0).
 	:- info(process/0, [
-		comment is 'Process all rules'
+		comment is 'Process all rules of denoted by subsets'
 	]).
 
-	process:-
-		forall(::element(N,P,T,A,S), rule(element(N,P,T,A,S))).
+    process :-
+        process(textsize),
+        process(center_text).
+
+	:- public(process/1).
+	:- info(process/1, [
+		comment is 'Process all rules of set defined by the argument'
+	]).
+
+	process(textsize):-
+		forall(::element(N,P,page,A,S), rule(textsize, element(N,P,page,A,S))).
+
+    process(center_text):-
+		forall(::element(N,P,text,A,S), rule(center_text, element(N,P,text,A,S))).
 		%forall(::element(N,P,T,A,S), format("QQ~w-~w-~w ~w '~w'\n", [N, P, T, A, S])).
 
-	:- protected(rule/1).
-	:- info(rule/1, [
+	:- protected(rule/2).
+	:- info(rule/2, [
 		comment is 'Applies a processing rule'
 	]).
 
-	rule(El) :-
+    rule(textsize, element(Page, Par, page, PAttrs, PS)) :-
+        findall(Lay,
+            (::element(_, Page, text, Attrs, _), layout(Attrs, Lay)),
+            List),
+        bbox(List, lay(L,T,W,H)), !,
+        ::replace(element(Page, Par, page, PAttrs, PS), element(Page, Par, page,
+            [textleft=L, texttop=T, textwidth=W, textheight=H | PAttrs],
+            PS)).
+
+	rule(center_text, El) :-
 		centered(El, NEl), !,
-		replace(El, NEl).
+		::replace(El, NEl).
 
-	rule(_).
+	rule(_,_).
 
-	:- protected(replace/2).
-	:- info(replace/2, [
-		comment is 'Replaces a fact in object database'
-	]).
+    layout(Attrs, lay(L,T,W,H)) :-
+        option(left(L), Attrs),
+        option(top(T), Attrs),
+        option(width(W), Attrs),
+        option(height(H), Attrs).
 
-	replace(A,B) :-
-		retractall(A),
-		asserta(B).
+    bbox([Lay], Lay).
+    bbox([lay(L,T,W,H) | Tail], lay(L2,T2,W2,H2)):-
+        bbox(Tail, lay(L1,T1,W1,H1)),
+        L2 is min(L1,L),
+        T2 is min(T1,T),
+        W2 is max(W1,W),
+        H2 is max(H1,H).
 
     % :- public(print0/0).
     % :- info(print0/0, [
@@ -77,7 +105,7 @@
     % ]).
 
     % print0 :-
-    %        forall(::el(N, P, Na, A, S), format("~w-~w-~w ~w '~w'\n", [N, P, Na, A, S])).
+    %        forall(::element(N, P, Na, A, S), format("~w-~w-~w ~w '~w'\n", [N, P, Na, A, S])).
 
 
 :- end_object.
