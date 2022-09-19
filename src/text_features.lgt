@@ -26,6 +26,10 @@
         fail.
 
     update_attrs(N) :-
+        starts_field(N),
+        fail.
+
+    update_attrs(N) :-
         starts_with_numbering(N),
         fail.
 
@@ -39,15 +43,30 @@
 
     update_attrs(_).
 
+    starts_field(N) :-   % Цели: ... Задачи: ...
+        ::element(N, P, T, A, S), !,
+        ::gettext(S, Text),
+        re_matchsub("^\\s*?([А-Я][а-яА-Я]{2,})\\s*(:|\\))", Text, Dict, []),
+        % format("RE: ~w | ~w\n", [Dict, Text]),
+        get_dict(1, Dict, ItemName),
+        ItemName \= "",
+        ::replace(element(N, P, T, A, S),
+                  element(N, P, T,
+                          [descr=ItemName, dict=Dict | A], S)),
+        !.
+
     starts_with_numbering(N) :-
         ::element(N, P, T, A, S), !,
         ::gettext(S, Text),
-        re_matchsub("\\s*?(разд?е?л?|тема?)?\\.?\\s*(\\d*)(\\.|:|\\))?"/i, Text, Dict, []),
+        re_matchsub("^\\s*?(разд?е?л?|тема?)?\\.?\\s*(\\d{1,3})(\\.|:|\\)|\s)"/i, Text, Dict, []),
         % format("RE: ~w\n", [Dict]),
         get_dict(2, Dict, Item),
         Item \= "",
         get_dict(1, Dict, ItemName),
-        ::replace(element(N, P, T, A, S), element(N, P, T, [item=Item, itemName=ItemName | A], S)),
+        ::replace(element(N, P, T, A, S),
+                  element(N, P, T,
+                          [item=Item, itemName=ItemName, dict=Dict | A],
+                          S)),
         !.
 
     starts_with_ding(N) :-

@@ -19,27 +19,7 @@
 
 
     process_merge :-
-       % simple_row_merge(text),
-       simple_lines_merge(text),
-       simple_lines_merge(text),
-       simple_lines_merge(text),
-       simple_lines_merge(text),
-       simple_lines_merge(text),
-       simple_lines_merge(text),
-       simple_lines_merge(text),
-       simple_lines_merge(text),
-       simple_lines_merge(text),
-       simple_lines_merge(text),
-       simple_lines_merge(text),
-       simple_lines_merge(text),
-       simple_lines_merge(text),
-       simple_lines_merge(text),
-       simple_lines_merge(text),
-       simple_lines_merge(text),
-       simple_lines_merge(text),
-       simple_lines_merge(text),
-       simple_lines_merge(text),
-       simple_lines_merge(text).
+        simple_lines_merge(text).
 
 
     % simple_lines_merge(Tag) :-
@@ -61,11 +41,13 @@
 
     simple_lines_merge(Tag) :-
        % debugger::trace,
-       A = element(_, _, Tag, _, _),
-       neighbor1(A,B),
+       ::element(N, P, Tag, Attrs, S),
+       A = element(N, P, Tag, Attrs, S),
+       ::neighbor(A,B),
+       % debugger::trace,
        ::lines_mergable(A,B),
-       merge(A,B),
-       fail.
+       merge(A,B), !,
+       simple_lines_merge(Tag).
 
     simple_lines_merge(_).
 
@@ -73,17 +55,17 @@
     neighbor1(element(N1, Par, Tag, Attrs1, S1), element(N2, Par, Tag, Attrs2, S2)):-
        ::gen(N1),
        ::element(N1, Par, Tag, Attrs1, S1),
-%       debugger::trace,
+       % debugger::trace,
        ::neighbor(element(N1, Par, Tag, Attrs1, S1), element(N2, Par, Tag, Attrs2, S2)).
 
     merge(E1, E2) :-
        E1 = element(N1, Par, Tag, Attrs1, S1),
        E2 = element(_, Par, Tag, Attrs2, S2),
-       % debugger::trace,
        merge_bbox(Attrs1, Attrs2, MergedAttrs),
-       ::remove(E1), ::remove(E2),
+       % debugger::trace,
+       ::remove(E2),
        append_bodies(S1, S2, MS),
-       ::append(element(N1, Par, Tag, [joined=true | MergedAttrs], MS)),
+       ::replace(E1,element(N1, Par, Tag, [joined=true | MergedAttrs], MS)),
        % format("\nSIM: ~w\n", [element(N1, Par, Tag, MergedAttrs, MS)]),
        !.
 
@@ -95,15 +77,15 @@
     lines_mergable(element(_, Par, Tag, Attrs1, _), element(N2, Par, Tag, Attrs2, S2)):-
        \+ par_start(element(N2, Par, Tag, Attrs2, S2)),
        option(left(L1), Attrs1),
-       option(width(W1), Attrs1),
+       % option(width(W1), Attrs1),
        option(left(L2), Attrs2),
-       option(width(W2), Attrs2),
-       ::deviation(paragraph, [LeftD, RightD]),
+       % option(width(W2), Attrs2),
+       ::deviation(paragraph, [LeftD, _RightD]),
        DR is abs(L1 - L2),
        DR =< LeftD,
        % DL is abs(L1 + W1 - (L2 + W2)),
        %DL =< RightD,
-       (W1 =< W2; W1 =< W2 + RightD),
+       % (W1 =< W2; W1 =< W2 + RightD),
        % format("\nSIM:|~w| =< ~w\n", [DL, RightD]),
        option(font(F), Attrs1),
        option(font(F), Attrs2),
@@ -118,6 +100,7 @@
    par_option(item(_)).
    par_option(ding(_)).
    par_option(parindent(_)).
+   par_option(descr(_)).
 
    merge_bbox(A1, A2, [left(L), width(W), height(H) | T]) :-
        select_option(left(L1), A1, A11),

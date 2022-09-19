@@ -23,7 +23,8 @@
 
 	convert(Term) :-
 		convert(Term, 1, Last, none),
-		asserta(range(1,Last)).
+		asserta(range(1,Last)),
+        count_neighbors(page).
 
 	:- public(convert/4).
 	:- info(convert/4, [
@@ -70,11 +71,46 @@
 	text_name(text,text).
 	text_name(i,itelic).
 
-	:- public(element/5).
-	:- protected(range/2).
+    count_neighbors(text, Par) :-
+       gen(N),
+       element(N, Par, Tag, A, S), !,  % The first one
+       count_neighbors(element(N, Par, Tag, A, S)), !.
 
-	:- dynamic(element/5).
+    count_neighbors(page) :-
+       gen(N),
+       element(N, Par, page, A, S), !,  % The first one
+       count_neighbors(element(N, Par, page, A, S)), !.
+
+    count_neighbors(element(N1, P, Tag, A1, S1)):-
+       find_neighbor(element(N1, P, Tag, A1, S1), element(N2, P, Tag, A2, S2)), !,
+       assertz(neighborN(N1,N2)), !,
+       ( Tag = page -> count_neighbors(text, N1); true ),
+       count_neighbors(element(N2, P, Tag, A2, S2)).
+
+    count_neighbors(element(N1, _, Tag, _, _)):-
+       ( Tag = page -> count_neighbors(text, N1); true ).
+
+
+	:- info(element/5, [
+		comment is 'Dynamic predicate represents an element of a PDF structure.'
+	]).
+
+	:- protected(element/5).
+    :- dynamic(element/5).
+
+	:- protected(neighborN/5).
+    :- info(neighborN/5, [
+		comment is 'Dynamic prdicate defines that two element of the same kind are neighbors'
+	]).
+	:- dynamic(neighborN/2).
+
+
+	:- protected(range/2).
+    :- info(range/2, [
+		comment is 'Dynamic predicate defines the range of id variation for the elements'
+	]).
 	:- dynamic(range/2).
+
 
 	:- public(print/0).
 	:- info(print/0, [
@@ -83,7 +119,7 @@
 
 	printn(Tag, N) :-
 		element(N, Parent, Tag, Attrs, String), !,
-		format("~w-~w-~w ~w '~w'\n", [N, Parent, Tag, Attrs, String]).
+		format("~w-~w ~w ~w '~w'\n", [N, Parent, Tag, Attrs, String]).
 	printn(_, _).
 
 	print :-
@@ -115,7 +151,11 @@
        comment is 'Two lines are neighbors and have same tag = text, page'
     ]).
 
-    neighbor(element(N1, Par, Tag, _, _), element(N2, Par, Tag, Attrs2, S2)) :-
+    neighbor(element(N1, P, Tag, _, _),element(N2, P, Tag, A2, S2)):-
+       neighborN(N1, N2),
+       element(N2, P, Tag, A2, S2).
+
+    find_neighbor(element(N1, Par, Tag, _, _), element(N2, Par, Tag, Attrs2, S2)) :-
        range(_, End), N1 < End, !,
        Start is N1 + 1,
        gen(Start, End, N2),
@@ -135,6 +175,8 @@
 	]).
 
 	replace(A,B) :-
+        % A = element(N, P, Tag, A, S),
+        % B = element(N, P, Tag, A, S)
         % A = element(N, P, Na, Aa, S)
         % format("RETRACT ALL:~w-~w-~w ~w '~w'\n", [N, P, Na, Aa, S])),
 		retract(A),
@@ -145,8 +187,25 @@
        comment is 'Removes a database element.'
     ]).
 
-    remove(A) :-
-        retract(A).
+    remove(element(N, P, Tag, A, S)) :-
+        retract(element(N, P, Tag, A, S)),
+        (
+           neighborN(N0,N),
+           neighborN(N ,N1) ->
+           retract(neighborN(N0, N)),
+           retract(neighborN(N, N1)),
+           asserta(neighborN(N0, N1)) ;   % Element was located in a middle.
+           (
+             neighborN(N0, N) ->
+             retract(neighborN(N0, N)) ;  % It was the last one
+              (
+                neighborN(N,N1) ->
+                retract(neighborN(N, 1)); % The first one
+                true                      % The only element
+              )
+           )
+        )
+        .
 
     :- public(prepend/1).
     :- info(prepend/1, [
@@ -170,6 +229,7 @@
     ]).
 
     gettext([], "") :- !.
+    gettext(A, S) :- atom(A), atom_string(A,S), !.
     gettext(S, S) :- string(S), !.
     gettext([X|T], S) :-
         gettext(X, XS),
@@ -187,6 +247,22 @@
        lstrip(SS,SSS,Ch).
     lstrip(S,S, _).
 
+    :- public(print_as_text/1).
+    :- info(print_as_text/1, [
+        comment is 'Prints database as text with some marks'
+    ]).
+
+    print_as_text(Tag) :-
+		forall(gen(N), print_as_text(Tag, N)).
+
+    print_as_text(Tag, N) :-
+        element(N, P, Tag, Attrs, S), !,
+        % (N = 26 -> debugger::trace; true),
+        gettext(S, Text),
+        % Text = S,
+        format("~w-~w ~w ~w\n", [N, P, Text, Attrs]).
+
+    print_as_text(_, _).
 
 
 :- end_object.
