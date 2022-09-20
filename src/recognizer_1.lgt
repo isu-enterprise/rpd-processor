@@ -1,6 +1,9 @@
 :- object(recognizer(_XML_),
    extends(as_db(_XML_)),
-   imports([text_attrib, text_features, text_merge])).
+   imports([text_attrib,
+            text_features,
+            text_merge,
+            syllabus_page_one])).
 
    :- info([
       version is 1:0:0,
@@ -31,6 +34,7 @@
       ::process_attrs, !,
       ::process_features, !,
       ::process_merge, !,
+      ::process_first_page, !,
       true.
 
 

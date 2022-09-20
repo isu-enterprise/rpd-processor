@@ -23,21 +23,31 @@
         simple_lines_merge(text),
         page_lines_merge(page).
 
+    :- protected(simple_lines_merge/1).
+    :- info(simple_lines_merge/1, [
+       comment is 'Merges two lines'
+    ]).
+
     simple_lines_merge(Tag) :-
        ::element(N, P, Tag, Attrs, S),
        A = element(N, P, Tag, Attrs, S),
        ::neighbor(A,B),
-       ::lines_mergable(A,B),
+       lines_mergable(A,B),
        merge(A,B), !,
        simple_lines_merge(Tag).
 
     simple_lines_merge(_).
 
+    :- protected(simple_word_merge/1).
+    :- info(simple_word_merge/1, [
+        comment is 'Merges two lines if condition is ok'
+    ]).
+
     simple_word_merge(Tag) :-
        ::element(N, P, Tag, Attrs, S),
        A = element(N, P, Tag, Attrs, S),
        ::neighbor(A,B),
-       ::word_mergable(A,B),
+       word_mergable(A,B),
        word_merge(A, B), !,
        simple_word_merge(Tag).
 
@@ -74,15 +84,19 @@
        ::element(N1, Par, Tag, Attrs1, S1),
        ::neighbor(element(N1, Par, Tag, Attrs1, S1), element(N2, Par, Tag, Attrs2, S2)).
 
+    :- protected(merge/2).
+    :- info(merge/2, [
+        comment is 'Merges two lines'
+    ]).
+
+
     merge(E1, E2) :-
        E1 = element(N1, Par, Tag, Attrs1, S1),
        E2 = element(_, Par, Tag, Attrs2, S2), !,
        merge_bbox_ver(Attrs1, Attrs2, MergedAttrs),
-       % debugger::trace,
        ::remove(E2),
        append_bodies(S1, S2, MS),
        ::replace(E1,element(N1, Par, Tag, [joined=true | MergedAttrs], MS)),
-       % format("\nSIM: ~w\n", [element(N1, Par, Tag, MergedAttrs, MS)]),
        !.
 
     merge(E1, E2) :-
@@ -99,6 +113,11 @@
 
        % format("\nSIM: ~w\n", [element(N1, Par, Tag, MergedAttrs, MS)]),
        !.
+
+    :- protected(word_merge/2).
+    :- info(word_merge/2, [
+        comment is 'Merges runs in a line'
+    ]).
 
     word_merge(E1, E2) :-  % TODO: Riechest font (Bold, Italic) -> element in body
        E1 = element(N1, Par, Tag, Attrs1, _),
