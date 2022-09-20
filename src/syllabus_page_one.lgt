@@ -48,22 +48,22 @@
        ::element(N, Par, Tag, Attrs, S),
        A = element(N, Par, Tag, Attrs, S),
        ::neighbor(A,B),
-       debugger::trace,
-       lines_mergable1(A,B),
+       % debugger::trace,
+       lines_mergable(A,B),
        ::merge(A,B), !,
        simple_lines_merge(Par, Tag).
 
     simple_lines_merge(_,_).
 
-    :- protected(lines_mergable1/2).
-    :- info(lines_mergable1/2, [
+    :- protected(lines_mergable/2).
+    :- info(lines_mergable/2, [
         comment is 'Check wether lines are mergable'
     ]).
 
 
-    lines_mergable1(
-       element(_, Par, Tag, Attrs1, _),
-       element(_, Par, Tag, Attrs2, _)):-
+    lines_mergable(
+           element(_, Par, Tag, Attrs1, _),
+           element(_, Par, Tag, Attrs2, _)):-
        option(font(F), Attrs1),
        option(font(F), Attrs2).
 
