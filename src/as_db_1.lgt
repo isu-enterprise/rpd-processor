@@ -72,9 +72,10 @@
 	text_name(i,itelic).
 
     count_neighbors(text, Par) :-
-       gen(N),
-       element(N, Par, Tag, A, S), !,  % The first one
-       count_neighbors(element(N, Par, Tag, A, S)), !.
+       P is Par + 1,
+       gen(P, N),
+       element(N, Par, text, A, S), !,  % The first one
+       count_neighbors(element(N, Par, text, A, S)), !.
 
     count_neighbors(page) :-
        gen(N),
@@ -84,11 +85,17 @@
     count_neighbors(element(N1, P, Tag, A1, S1)):-
        find_neighbor(element(N1, P, Tag, A1, S1), element(N2, P, Tag, A2, S2)), !,
        assertz(neighborN(N1,N2)), !,
-       ( Tag = page -> count_neighbors(text, N1); true ),
+       ( Tag = page ->
+         % format("CN: ~w\n",[element(N1, P, Tag, A1, S1)]),
+         % (N1=53 -> debugger::trace; true),
+         count_neighbors(text, N1); true ),
        count_neighbors(element(N2, P, Tag, A2, S2)).
 
     count_neighbors(element(N1, _, Tag, _, _)):-
        ( Tag = page -> count_neighbors(text, N1); true ).
+       % ( Tag = page ->
+       %   format("CN: ~w\n",[element(N1, P, Tag, A1, S1)]),
+       %   count_neighbors(text, N1); true ).
 
 
 	:- info(element/5, [
@@ -119,7 +126,7 @@
 
 	printn(Tag, N) :-
 		element(N, Parent, Tag, Attrs, String), !,
-		format("~w-~w ~w ~w '~w'\n", [N, Parent, Tag, Attrs, String]).
+		format("\n~w-~w ~w ~w\n     '~w'\n", [N, Parent, Tag, Attrs, String]).
 	printn(_, _).
 
 	print :-
@@ -136,6 +143,15 @@
 		Start =< End,
 		Start1 is Start + 1,
 		gen(Start1, End, N).
+
+    :- public(gen/2).
+    :- info(gen/2, [
+       comment is 'Generates number into N for all elements in order starting with Start'
+    ]).
+
+    gen(Start, N) :-
+       range(_, End), !,
+       gen(Start, End, N).
 
     :- public(gen/1).
     :- info(gen/1, [

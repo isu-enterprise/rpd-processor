@@ -47,7 +47,9 @@
         ::element(N, P, T, A, S), !,
         ::gettext(S, Text),
         re_matchsub("^\\s*?([А-Я][а-яА-Я]{2,})\\s*(:|\\))", Text, Dict, []),
+        % TODO задачи: цели: .... from a user set of fields
         % format("RE: ~w | ~w\n", [Dict, Text]),
+        long_enough(S, Dict),
         get_dict(1, Dict, ItemName),
         ItemName \= "",
         ::replace(element(N, P, T, A, S),
@@ -58,10 +60,11 @@
     starts_with_numbering(N) :-
         ::element(N, P, T, A, S), !,
         ::gettext(S, Text),
-        re_matchsub("^\\s*?(разд?е?л?|тема?)?\\.?\\s*(\\d{1,3})(\\.|:|\\)|\s)"/i, Text, Dict, []),
+        re_matchsub("^\\s*?(разд?е?л?|тема?)?\\.?\\s*(\\d{1,3}|[а-кАК])(\\.|:|\\)|\s)"/i, Text, Dict, []),
         % format("RE: ~w\n", [Dict]),
         get_dict(2, Dict, Item),
         Item \= "",
+        long_enough(S, Dict),
         get_dict(1, Dict, ItemName),
         ::replace(element(N, P, T, A, S),
                   element(N, P, T,
@@ -97,6 +100,12 @@
         ::replace(element(N, P, T, A, S),
             element(N, P, T, [ parend=true | A], S)),
         !.
+
+    long_enough(S, Dict) :-
+        get_dict(0, Dict, Matched), % Mtcing from the brgininning of string
+        sub_string(S, 0, _, After, Matched),
+        ::deviation(itemtextminlength, [Length]),
+        After > Length.
 
     :- protected(ding_symbol/1).
     :- info(ding_symbol/1, [
