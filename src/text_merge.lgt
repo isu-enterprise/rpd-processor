@@ -46,14 +46,14 @@
     page_lines_merge(Tag) :-
        ::element(N, P, Tag, Attrs, S),
        A = element(N, P, Tag, Attrs, S),
+       % format("NP1:\n~w\n~w\n", [A,B]),
        ::neighbor(A, B),
-       % format("NP:\n~w\n~w\n", [A,B]),
+       % format("NP2:\n~w\n~w\n", [A,B]),
        last_line(A, B, EA),
        first_line(B, EB),
        ::lines_mergable(EA,EB),
-       % debugger::trace,
        merge(EA,EB), !,
-       simple_lines_merge(Tag).
+       page_lines_merge(Tag).
 
     page_lines_merge(_).
 
@@ -91,7 +91,7 @@
        Par2 \= Par1,
        !,
        % debugger::trace,
-       merge_bbox_ver(Attrs1, Attrs2, MergedAttrs),  % TODO: Incorrect over pages
+       merge_bbox_page(Par1, Par2, Attrs1, Attrs2, MergedAttrs),  % TODO: Incorrect over pages
        ::remove(E2),
        append_bodies(S1, S2, MS),
        ::replace(E1,element(N1, Par1, Tag, [joined=true | MergedAttrs], MS)),
@@ -139,6 +139,7 @@
     lines_mergable(element(_N1, Par1, Tag, Attrs1, _S1), element(N2, Par2, Tag, Attrs2, S2)):-
        Par1 \= Par2,
        \+ par_start(element(N2, Par2, Tag, Attrs2, S2)),
+       % debugger::trace,
        option(left(_L1), Attrs1),
        option(left(L2), Attrs2),
        ::deviation(paragraph, [LeftD, _RightD]),
@@ -198,6 +199,28 @@
        select_option(top(To1), A13, T1),
        select_option(top(To2), A23, T2),
        H is To2 + H2 - To1,
+       merge_options(T1, T2, T).
+
+   merge_bbox_page(P1, P2, A1, A2, [left(L), top(To1), width(W), height(H) | T]) :-
+       ::element(P1, _, page, PAttrs1, _),
+       ::element(P2, _, page, PAttrs2, _),
+       select_option(left(L1), A1, A11),
+       select_option(left(L2), A2, A21),
+       option(textleft(TL1), PAttrs1),
+       option(textleft(TL2), PAttrs2),
+       DTL is TL1 - TL2,
+       L is min(L1, L2 + DTL),
+       select_option(width(W1), A11, A12),
+       select_option(width(W2), A21, A22),
+       R1 is L1 + W1,
+       R2 is L2 + DTL + W2,
+       R is max(R1, R2),
+       W is R - L,
+       select_option(height(H1), A12, A13),
+       select_option(height(H2), A22, A23),
+       select_option(top(To1), A13, T1),
+       select_option(top(_To2), A23, T2),
+       H is H1 + H2,  % Me'sa  too lazy.
        merge_options(T1, T2, T).
 
    merge_bbox_hor(A1, A2, [left(L), top(To), width(W), height(H) | T]) :-
