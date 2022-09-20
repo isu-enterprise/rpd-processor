@@ -144,6 +144,17 @@
 		Start1 is Start + 1,
 		gen(Start1, End, N).
 
+    :- public(ngen/3).
+    :- info(ngen/3, [
+       comment is 'Generates number from End downto Start into N'
+    ]).
+
+	ngen(Start, End, End) :- Start =< End.
+	ngen(Start, End, N) :-
+		Start =< End,
+		End1 is End - 1,
+		ngen(Start, End1, N).
+
     :- public(gen/2).
     :- info(gen/2, [
        comment is 'Generates number into N for all elements in order starting with Start'
@@ -161,6 +172,15 @@
     gen(N) :-
        range(Start, End), !,
        gen(Start, End, N).
+
+    :- public(ngen/2).
+    :- info(ngen/2, [
+       comment is 'Generates number into N for all elements in the negative order starting with End'
+    ]).
+
+    ngen(End, N) :-
+       range(Start, _), !,
+       ngen(Start, End, N).
 
     :- public(neighbor/2).
     :- info(neighbor/2, [
@@ -216,7 +236,7 @@
              retract(neighborN(N0, N)) ;  % It was the last one
               (
                 neighborN(N,N1) ->
-                retract(neighborN(N, 1)); % The first one
+                retract(neighborN(N, N1)); % The first one
                 true                      % The only element
               )
            )

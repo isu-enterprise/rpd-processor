@@ -20,7 +20,8 @@
 
     process_merge :-
         simple_word_merge(text),
-        simple_lines_merge(text).
+        simple_lines_merge(text),
+        page_lines_merge(page).
 
     simple_lines_merge(Tag) :-
        ::element(N, P, Tag, Attrs, S),
@@ -42,6 +43,32 @@
 
     simple_word_merge(_).
 
+    page_lines_merge(Tag) :-
+       ::element(N, P, Tag, Attrs, S),
+       A = element(N, P, Tag, Attrs, S),
+       ::neighbor(A, B),
+       % format("NP:\n~w\n~w\n", [A,B]),
+       last_line(A, B, EA),
+       first_line(B, EB),
+       ::lines_mergable(EA,EB),
+       % debugger::trace,
+       merge(EA,EB), !,
+       simple_lines_merge(Tag).
+
+    page_lines_merge(_).
+
+    first_line(element(PN, _, page, _, _), element(N, PN, text, A, S)) :-
+       Start is PN + 1,
+       ::gen(Start, N),
+       ::element(N, PN, text, A, S), !.
+
+    last_line(element(PN, _, page, _, _),
+              element(P2N, _, page, _, _),
+              element(N, PN, text, A, S)) :-
+       End is P2N - 1,
+       ::ngen(End, N),
+       ::element(N, PN, text, A, S), !.
+
     neighbor1(element(N1, Par, Tag, Attrs1, S1), element(N2, Par, Tag, Attrs2, S2)):-
        ::gen(N1),
        ::element(N1, Par, Tag, Attrs1, S1),
@@ -49,12 +76,27 @@
 
     merge(E1, E2) :-
        E1 = element(N1, Par, Tag, Attrs1, S1),
-       E2 = element(_, Par, Tag, Attrs2, S2),
+       E2 = element(_, Par, Tag, Attrs2, S2), !,
        merge_bbox_ver(Attrs1, Attrs2, MergedAttrs),
        % debugger::trace,
        ::remove(E2),
        append_bodies(S1, S2, MS),
        ::replace(E1,element(N1, Par, Tag, [joined=true | MergedAttrs], MS)),
+       % format("\nSIM: ~w\n", [element(N1, Par, Tag, MergedAttrs, MS)]),
+       !.
+
+    merge(E1, E2) :-
+       E1 = element(N1, Par1, Tag, Attrs1, S1),
+       E2 = element(_, Par2, Tag, Attrs2, S2),
+       Par2 \= Par1,
+       !,
+       % debugger::trace,
+       merge_bbox_ver(Attrs1, Attrs2, MergedAttrs),  % TODO: Incorrect over pages
+       ::remove(E2),
+       append_bodies(S1, S2, MS),
+       ::replace(E1,element(N1, Par1, Tag, [joined=true | MergedAttrs], MS)),
+       % TODO: Add neighboring for joined line of different pages!
+
        % format("\nSIM: ~w\n", [element(N1, Par, Tag, MergedAttrs, MS)]),
        !.
 
@@ -90,6 +132,21 @@
          par_start(element(N1, Par, Tag, Attrs1, S1))
 
        ),
+       option(font(F), Attrs1),
+       option(font(F), Attrs2),
+       !.
+
+    lines_mergable(element(_N1, Par1, Tag, Attrs1, _S1), element(N2, Par2, Tag, Attrs2, S2)):-
+       Par1 \= Par2,
+       \+ par_start(element(N2, Par2, Tag, Attrs2, S2)),
+       option(left(_L1), Attrs1),
+       option(left(L2), Attrs2),
+       ::deviation(paragraph, [LeftD, _RightD]),
+       ::element(Par2, _, page, PAttrs, _),
+       option(textleft(PTL), PAttrs),
+       DR1 is abs(L2 - PTL),
+       DR1 =< LeftD,
+       % par_start(element(N1, Par1, Tag, Attrs1, S1)),
        option(font(F), Attrs1),
        option(font(F), Attrs2),
        !.
