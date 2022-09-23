@@ -97,7 +97,34 @@
         comment is 'Make references from paragraphs to their sections'
     ]).
 
-    associate_paragraphs. % TODO
+    associate_paragraphs :-
+        forall( section(E), associate(E)).
+
+    :- public(section/1).
+    :- info(section/1, [
+        comment is 'Is this element a section?'
+    ]).
+
+    section(E) :-
+        ::gen(N),
+        ::element(N, P, T, A, S),
+        E = element(N, P, T, A, S),
+        is_section(E).
+
+    is_section(element(N, P, T, A, S)) :-
+        option(section(_), A).
+
+    associate(E) :-
+        E = element(Start, P, text, A, S),
+        S1 is Start + 1,
+        ::gen(S1, N),
+        ::element(S1, Par, text, A2, S2),
+        ( is_section(element(S1, Par, text, A2, S2) -> !, fail; true),
+        ::replace(element(S1, Par, text, A2, S2),
+                  element(S1, Par, text, [in_section=Start|A2], S2)),
+        fail.
+
+    associate(_).
 
 
 
