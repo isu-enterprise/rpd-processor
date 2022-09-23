@@ -7,6 +7,8 @@
         comment is 'Recognizes text sections and makes references from Attr list with numbers'
     ]).
 
+   :- use_module(lists, [member/2]).
+   :- use_module(library(option), [option/2, option/3]).
 
     :- public(process_sections/0).
     :- info(process_sections/0, [
@@ -26,7 +28,27 @@
     ]).
 
     numbered_sections :-
-        forall(::element(E), num_sec(E)).
+        forall(::element(N, P, T, A, S),
+               num_sec(element(N, P, T, A, S))).
+
+
+    num_sec(element(N, P, T, A, S)) :-
+        option(item(No), A),
+        option(itemname(''), A),
+        number_section0(No, Def),
+        ::replace(element(N, P, T, A, S),
+            element(N, P, T, [ section=Def | A ], S)).
+
+    num_sec(_).
+
+    number_section0(N, Sec) :-
+        ::number_section(N, Sec), !.
+    number_section0(N, Sec) :-
+        ::number_section([N], Sec), !.
+
+
+
+
 
     :- protected(number_section/3).
     :- info(number_section/3, [
@@ -58,7 +80,7 @@
         comment is 'Make references from paragraphs to their sections'
     ]).
 
-
+    associate_paragraphs. % TODO
 
 
 

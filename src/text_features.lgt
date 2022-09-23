@@ -60,12 +60,14 @@
     starts_with_numbering(N) :-
         ::element(N, P, T, A, S), !,
         ::gettext(S, Text),
-        re_matchsub("^\\s*?(разд?е?л?|тема?)?\\.?\\s*(\\d{1,3}|[а-кАК])(\\.|:|\\)|\s)"/i, Text, Dict, []),
-        % format("RE: ~w\n", [Dict]),
+        re_matchsub("^\\s*?(разд?е?л?|тема?)?\\.?\\s*((\\d{1,3}\\.?)+|[а-кА-К])(\\.|:|\\)|\s)"/i, Text, Dict, []),
+        % format("RE: ~w\n~w\n", [Dict, Text]),
+        % debugger::trace,
         get_dict(2, Dict, Item),
         Item \= "",
         long_enough(S, Dict),
         get_dict(1, Dict, ItemName),
+        % TODO: convert 4.1.1. -> [4,1,1]
         ::replace(element(N, P, T, A, S),
                   element(N, P, T,
                           [item=Item, itemName=ItemName, dict=Dict | A],

@@ -1,6 +1,9 @@
 :- object(recognizer(_XML_),
    extends(as_db(_XML_)),
-   imports([text_attrib, text_features, text_merge])).
+   imports([text_attrib,
+            text_features,
+            text_merge,
+            text_syllabus_sections])).
 
    :- info([
       version is 1:0:0,

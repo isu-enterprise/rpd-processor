@@ -14,7 +14,8 @@
    ]).
 
    % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/B1.O.30_Sistemy_iskusstvennogo_intellekta_4003.pdf.xml").
-   xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/simple.xml").
+   % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/simple.xml").
+   xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/ex1.xml").
 
    :- public(run/0).
    :- info(run/0, [

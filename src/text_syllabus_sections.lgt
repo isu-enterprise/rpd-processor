@@ -16,14 +16,14 @@
     process_syllabus_sections :-
         ::process_sections.
 
-    :- protected(number_section/4).
-    :- info(number_section/0, [
+    :- protected(number_section/3).
+    :- info(number_section/3, [
         comment is 'Description'
     ]).
 
     number_section(1, aims_and_problems, none).
     number_section(2, aims_and_problems, none).
-    number_section(3, requirements).
+    number_section(3, requirements, none).
     number_section(4, content, none).
     number_section([4,1], content_hours, content).
     number_section([4,2], individuals_holur, content).
@@ -40,7 +40,7 @@
     number_section([7,2], intermediate_control, control).
 
     :- protected(section_title/2).
-    :- info(section_tite/2, [
+    :- info(section_title/2, [
         comment is 'Set of ISU standard titles'
     ]).
 
