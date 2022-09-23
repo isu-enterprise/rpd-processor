@@ -22,7 +22,7 @@
       comment is 'Issues and informative message'
    ]).
 
-   run:-format("Hello world\n").
+   run:-format("Syllabus PDF->RDFa converter\n").
 
    :- public(xml_test/0).
    :- info(xml_test/0, [
@@ -44,7 +44,8 @@
       XML = xml_loader(Name),
       O = as_db(XML),
       O::convert,
-      O::print.
+      O::print,
+      true.
 
    :- public(attrib_test/0).
    :- info(attrib_test/0, [

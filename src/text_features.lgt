@@ -16,7 +16,7 @@
     :- use_module(lists, [member/2]).
 	:- use_module(library(option), [option/2, option/3]).
     :- use_module(library(pcre), [re_match/2, re_match/3,
-                                  re_matchsub/4]).
+                                  re_matchsub/4, re_split/4]).
 
     process_features :-
         forall(::element(N, _, text, _, _), update_attrs(N)).
@@ -60,15 +60,14 @@
     starts_with_numbering(N) :-
         ::element(N, P, T, A, S), !,
         ::gettext(S, Text),
-        re_matchsub("^\\s*?(разд?е?л?|тема?)?\\.?\\s*((\\d{1,3}\\.?)+|[а-кА-К])(\\.|:|\\)|\s)"/i, Text, Dict, []),
+        re_matchsub("^\\s*?(разд?е?л?|тема?)?\\.?\\s*((\\d{1,3}\\.?)+(\\.|:|\\)|\s)|[а-кА-К]\\))"/i, Text, Dict, []),
         % format("RE: ~w\n~w\n", [Dict, Text]),
-        % debugger::trace,
         get_dict(2, Dict, Item),
         Item \= "",
         long_enough(S, Dict),
         get_dict(1, Dict, ItemName),
-        % TODO: convert 4.1.1. -> [4,1,1]
         convert_item(Item, CItem),
+        % format("FRM2:~w ~w\n",[Item, CItem]),
         ::replace(element(N, P, T, A, S),
                   element(N, P, T,
                           [item=CItem, itemName=ItemName, dict=Dict | A],
@@ -105,7 +104,7 @@
         !.
 
     long_enough(S, Dict) :-
-        get_dict(0, Dict, Matched), % Mtcing from the brgininning of string
+        get_dict(0, Dict, Matched), % Matching from the brgininning of string
         sub_string(S, 0, _, After, Matched),
         ::deviation(itemtextminlength, [Length]),
         After > Length.
@@ -113,7 +112,21 @@
     convert_item(Item, IntItem) :-
         number_string(IntItem, Item), !.
 
-    % convert_item()
+    convert_item(Item, Result) :-
+        re_split("\\d+|[а-яА-я]", Item, L, []),
+        filter0(L, List, skip),
+        ( List = [Result] -> true;
+          Result=List ).
+
+    filter0([_], [], skip).
+    filter0([_|T1], T2, skip) :-
+        filter0(T1, T2, number).
+    filter0([X|T1], [IX|T2], number) :-
+        number_string(IX, X), !,
+        filter0(T1, T2, skip).
+    filter0([X|T1], [X|T2], number) :-
+        filter0(T1, T2, skip).
+
 
     :- protected(ding_symbol/1).
     :- info(ding_symbol/1, [
