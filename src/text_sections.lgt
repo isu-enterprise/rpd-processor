@@ -28,15 +28,21 @@
     numbered_sections :-
         forall(::element(E), num_sec(E)).
 
-    :- protected(number_section/4).
-    :- mode(number_section, Solutions).
-    :- info(number_section/4, [
+    :- protected(number_section/3).
+    :- info(number_section/3, [
         comment is 'Associate a pattern of a numbers to section symbol, parent and its description'
     ]).
 
-    % number_section(1, introduction, none, 'Introduction to an article').
-    % number_section([1,X], subsection(X), introduction, 'Introduction to an article').
+    % number_section(1, introduction, none).
+    % number_section([1,X], subsection(X), introduction).
 
+    :- protected(section_tite/2).
+    :- info(section_tite/2, [
+        comment is 'Converts an atom defining section into its title'
+    ]).
+
+    % section_label(introduction, 'Introduction to an article').
+    % section_label(subsection(X), X).
 
     :- protected(named_sections/0).
     :- info(named_sections/0, [

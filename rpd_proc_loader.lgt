@@ -17,6 +17,8 @@
         'src/text_attrib',
         'src/text_features',
         'src/text_merge',
+        'src/text_sections',
+        'src/text_syllabus_sections',
         'src/recognizer_1',
 
         'src/test']),

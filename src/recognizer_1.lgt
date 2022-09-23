@@ -31,6 +31,7 @@
       ::process_attrs, !,
       ::process_features, !,
       ::process_merge, !,
+      ::process_syllabus_sections, !,
       true.
 
 
