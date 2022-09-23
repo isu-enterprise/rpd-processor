@@ -68,9 +68,10 @@
         long_enough(S, Dict),
         get_dict(1, Dict, ItemName),
         % TODO: convert 4.1.1. -> [4,1,1]
+        convert_item(Item, CItem),
         ::replace(element(N, P, T, A, S),
                   element(N, P, T,
-                          [item=Item, itemName=ItemName, dict=Dict | A],
+                          [item=CItem, itemName=ItemName, dict=Dict | A],
                           S)),
         !.
 
@@ -108,6 +109,11 @@
         sub_string(S, 0, _, After, Matched),
         ::deviation(itemtextminlength, [Length]),
         After > Length.
+
+    convert_item(Item, IntItem) :-
+        number_string(IntItem, Item), !.
+
+    % convert_item()
 
     :- protected(ding_symbol/1).
     :- info(ding_symbol/1, [
