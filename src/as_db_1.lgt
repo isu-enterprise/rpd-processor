@@ -69,7 +69,7 @@
 
 	text_name(b,bold).
 	text_name(text,text).
-	text_name(i,itelic).
+	text_name(i,italic).
 
     count_neighbors(text, Par) :-
        P is Par + 1,
