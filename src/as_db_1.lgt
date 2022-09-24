@@ -269,9 +269,9 @@
 
     :- public(gettext/2).
     :- info(gettext/2, [
-    comment is 'Joins all components of list or string in a string'
+        comment is 'Joins all components of list or string in a string'
     ]).
-
+    % TODO: Consider element/5. Else it faile.
     gettext([], "") :- !.
     gettext(A, S) :- atom(A), atom_string(A,S), !.
     gettext(S, S) :- string(S), !.

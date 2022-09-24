@@ -83,13 +83,16 @@
                unum_sec(element(N, P, T, A, S))).
 
     unum_sec(element(N, P, T, A, S)) :-
-        debugger::trace,
+        % format("UNUM0: ~w\n", [element(N, P, T, A, S)] ),
+        ( N=103 -> debugger::trace; true),
         \+ ::section(element(N, P, T, A, S)),
         \+ option(item(_), A),
         ::gettext(S, Text),
         string_lower(Text, LText),
+        format("UNUM1: ~w\n", [LText]),
         ::unnumbered_section(Sec, Parent, Hints),
         check_hints(LText, Hints),
+        format("UNUM2: ~w\n", [LText]),
         ::element(_SN, _, text, SA, _),   % TODO: Make local cash with dynamics parent_section(Sec, Number)
         option(section(Parent), SA),
         ::replace(element(N, P, T, A, S),
