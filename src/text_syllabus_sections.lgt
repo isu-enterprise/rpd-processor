@@ -39,6 +39,13 @@
     number_section([7,1], current_control, control, [оценочн, текущ, контрол]).
     number_section([7,2], intermediate_control, control, [оценочн, промежуточн, аттестац]).
 
+    :- protected(unnumbered_section/3).
+    :- info(unnumbered_section/3, [
+        comment is 'Section definition without numbers'
+    ]).
+
+    unnumbered_section(list_of_ensuring_courses, placement, [перечен, последующ, дисципл, формируем, дисципл]).
+
     :- protected(section_title/2).
     :- info(section_title/2, [
         comment is 'Set of ISU standard titles'
@@ -62,5 +69,7 @@
     section_title(current_control, 'Оценочные средства текущего контроля').
     section_title(intermediate_control, 'Оценочные средства для промежуточной аттестации').
 
+    % Unnumbered sections
+    section_title(list_of_ensuring_courses, 'Перечень последующих учебных дисциплин, для которых необходимы знания, умения и навыки, формируемые данной учебной дисциплиной').
 
 :- end_category.

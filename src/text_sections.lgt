@@ -19,7 +19,7 @@
 
     process_sections :-
         numbered_sections, !,
-        % named_sections, !,
+        named_sections, !,
         % centered_sections, !,
         associate_paragraphs, !,
         true.
@@ -45,12 +45,8 @@
 
     number_section0(N, Sec, Text) :-
         ::number_section(N, Sec, _, Hints), !,
-        % hints_re(Hints, RegExp), !,
         string_lower(Text, LText), !,
-        % re_matchsub(RegExp, LText, Dict, []), !,
-        % debugger::trace,
         check_hints(LText, Hints).
-        % format("NS: ~w ~w\n", [LText, Hints]).
 
     number_section0(N, Sec) :-
         ::number_section([N], Sec), !.
@@ -60,12 +56,6 @@
         sub_string(Text, _, _, After, H), !,
         sub_string(Text, _, After, 0, SubText), !,
         check_hints(SubText, T).
-
-    % hints_re([Word], Word).
-    % hints_re([Word|T], RE) :-
-    %     hints_re(T, TRE),
-    %     string_concat(Word, "|", Word1),
-    %     string_concat(Word1, TRE, RE).
 
     :- protected(number_section/4).
     :- info(number_section/4, [
@@ -89,8 +79,28 @@
     ]).
 
     named_sections :-
-        true.
+        forall(::element(N, P, T, A, S),
+               unum_sec(element(N, P, T, A, S))).
 
+    unum_sec(element(N, P, T, A, S)) :-
+        debugger::trace,
+        \+ ::section(element(N, P, T, A, S)),
+        \+ option(item(_), A),
+        ::gettext(S, Text),
+        string_lower(Text, LText),
+        ::unnumbered_section(Sec, Parent, Hints),
+        check_hints(LText, Hints),
+        ::element(_SN, _, text, SA, _),   % TODO: Make local cash with dynamics parent_section(Sec, Number)
+        option(section(Parent), SA),
+        ::replace(element(N, P, T, A, S),
+            element(N, P, T, [ section=Sec | A ], S)).
+
+    unum_sec(_).
+
+    :- protected(unnumbered_section/3).
+    :- info(unnumbered_section/3, [
+        comment is 'Section definition without numbers'
+    ]).
 
     :- protected(associate_paragraphs/0).
     :- info(associate_paragraphs/0, [
@@ -109,10 +119,13 @@
     section(element(_, _, text, A, _)) :-
         option(section(_), A).
 
-    associate(N, End, _Parent) :-  % Parent section
+    associate(N, End, Parent) :-  % Parent section
         N =< End,
         ::element(N, P, text, A, S),
         ::section(element(N, P, text, A, S)), !,
+        ::replace(element(N, P, text, A, S),
+                  element(N, P, text,
+                          [in_section=Parent|A], S)),
         next(N,N1),
         associate(N1, End, N).
 
