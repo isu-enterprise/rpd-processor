@@ -1,4 +1,4 @@
-:- object(recognizer(_XML_),
+:- object(syllabus_recognizer(_XML_),
    extends(as_db(_XML_)),
    imports([text_attrib,
             text_features,

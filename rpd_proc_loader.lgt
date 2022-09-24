@@ -21,7 +21,7 @@
         'src/text_sections',
         'src/text_syllabus_sections',
 
-	'src/recognizer_1',
+        'src/syllabus_recognizer_1',
 
         'src/test']),
     % debugger::debug,

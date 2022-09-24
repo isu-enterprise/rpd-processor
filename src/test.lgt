@@ -56,7 +56,7 @@
    attrib_test :-
       xml_file_name(Name),
       XML = xml_loader(Name),
-      O = recognizer(XML),
+      O = syllabus_recognizer(XML),
       O::convert,
       O::process,
       O::print(_), nl,nl,
