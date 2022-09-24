@@ -23,7 +23,7 @@
 
     number_section(1, aims_and_problems, none, [цел, задач]).
     number_section(2, placement, none, [мест, дисциплин, структур]).
-    number_section(3, requirements, none, [требован, результат, освоен, дисциплин]).
+    number_section(3, ensurement, none, [требован, результат, освоен, дисциплин]).
     number_section(4, content, none, [содержан, структур, дисциплин]).
     number_section([4,1], content_hours, content, [содержан, дисциплин, структур, тем, час]).
     number_section([4,2], individuals_holur, content, [план, самостоятельн, работ]).
@@ -32,6 +32,10 @@
     number_section([4,3,2], individuals, content_structure, [перечен, тем, самостоятельн, работ]).
     number_section([4,4], individual_technique, content, [методическ, указан, самостоятельн, работ]).
     number_section(5, info_provision, none, [учебн, методическ, информацион, обеспечен, дисциплин]).
+    number_section(_, main_references, info_provision, [')', основн, литератур]).
+    number_section(_, auxiliary_references, info_provision, [')', дополнительн, литератур]).
+    number_section(_, electronic_references, info_provision, [')', баз, данн, информационн, справочн, систем]).
+    number_section(_, document_references, info_provision, [')', нормативн, документ]).
     number_section(6, tech_provision, none, [материал, техническ, обеспечен, дисциплин]).
     number_section([6,1], equipment, tech_provision, [учебн, лабораторн, оборудован]).
     number_section([6,2], software, tech_provision, [программн, обеспечен]).
@@ -44,7 +48,10 @@
         comment is 'Section definition without numbers'
     ]).
 
-    unnumbered_section(list_of_ensuring_courses, placement, [перечен, последующ, дисципл, формируем, дисципл]).
+    unnumbered_section(ensured_courses, placement, [перечен, последующ, дисципл, формируем, дисципл]).
+    unnumbered_section(current_control_examples, current_control, [пример, оценочн, средств, текущ, контрол]).
+    unnumbered_section(intermediate_control_questions, intermediate_control, [список, вопрос, промежуточн, аттестац]).
+    unnumbered_section(intermediate_control_examples, intermediate_control, [пример, оценочн, средств, промежуточн, аттестац]).
 
     :- protected(section_title/2).
     :- info(section_title/2, [
@@ -53,7 +60,7 @@
 
     section_title(aims_and_problems, 'Цели и задачи').
     section_title(placement, 'Место дисциплины в структуре ОПОП ВО').
-    section_title(requirements, 'Требования к результатам освоения дисциплины').
+    section_title(ensurement, 'Требования к результатам освоения дисциплины').
     section_title(content, 'Содержание и структура дисциплины').
     section_title(content_hours, 'Содержание дисциплины, структурированное по темам, c указанием видов учебных занятий и отведенного на них количества академических часов').
     section_title(individuals_holur, 'План внеаудиторной самостоятельной работы обучающихся по дисциплине').
@@ -70,6 +77,14 @@
     section_title(intermediate_control, 'Оценочные средства для промежуточной аттестации').
 
     % Unnumbered sections
-    section_title(list_of_ensuring_courses, 'Перечень последующих учебных дисциплин, для которых необходимы знания, умения и навыки, формируемые данной учебной дисциплиной').
+    section_title(ensured_courses, 'Перечень последующих учебных дисциплин, для которых необходимы знания, умения и навыки, формируемые данной учебной дисциплиной').
+
+    section_title(main_references, [а, "основная литература:"]).
+    section_title(auxiliary_references, [б, "дополнительная литература:"]).
+    section_title(electronic_references, [в, "базы данных, информационно-справочные и поисковые системы:"]).
+    section_title(document_references, [г, "нормативные документы:"]).
+    section_title(current_control_examples, "Примеры оценочных средств текущего контроля").
+    section_title(intermediate_control_questions, "Список вопросов для промежуточной аттестации:").
+    section_title(intermediate_control_examples, "Примеры оценочных средств для промежуточной аттестации:").
 
 :- end_category.

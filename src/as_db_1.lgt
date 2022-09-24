@@ -273,9 +273,11 @@
     ]).
     % TODO: Consider element/5. Else it faile.
     gettext([], "") :- !.
+    gettext(element(_,_,text,_,S), T) :- !,
+        gettext(S, T).
     gettext(A, S) :- atom(A), atom_string(A,S), !.
     gettext(S, S) :- string(S), !.
-    gettext([X|T], S) :-
+    gettext([X|T], S) :- !,
         gettext(X, XS),
         gettext(T, TS),
         string_concat(XS, TS, S).

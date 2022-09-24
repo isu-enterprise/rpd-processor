@@ -37,19 +37,21 @@
         option(item(No), A),
         option(itemName(""), A),
         ::gettext(S, Text),
-        number_section0(No, Def, Text),
+        string_lower(Text, LText),
+        % ( N=690 -> debugger::trace; true),
+        number_section0(No, Def, LText),
         ::replace(element(N, P, T, A, S),
             element(N, P, T, [ section=Def | A ], S)).
 
     num_sec(_).
 
     number_section0(N, Sec, Text) :-
-        ::number_section(N, Sec, _, Hints), !,
-        string_lower(Text, LText), !,
-        check_hints(LText, Hints).
+        ::number_section(N, Sec, _Parent, Hints),
+        check_hints(Text, Hints), !.
 
-    number_section0(N, Sec) :-
-        ::number_section([N], Sec), !.
+    % number_section0(N, Sec, Text) :-
+    %     ::number_section([N], Sec, _, _),
+    %     number_section0([N], Sec, Text).
 
     check_hints(_, []).
     check_hints(Text, [H|T]) :-
@@ -84,21 +86,32 @@
 
     unum_sec(element(N, P, T, A, S)) :-
         % format("UNUM0: ~w\n", [element(N, P, T, A, S)] ),
-        ( N=103 -> debugger::trace; true),
         \+ ::section(element(N, P, T, A, S)),
         \+ option(item(_), A),
+        % ( N=690 -> debugger::trace; true),
         ::gettext(S, Text),
         string_lower(Text, LText),
-        format("UNUM1: ~w\n", [LText]),
-        ::unnumbered_section(Sec, Parent, Hints),
-        check_hints(LText, Hints),
-        format("UNUM2: ~w\n", [LText]),
-        ::element(_SN, _, text, SA, _),   % TODO: Make local cash with dynamics parent_section(Sec, Number)
-        option(section(Parent), SA),
+        ::unnumbered_section(Sec, _Parent, Hints),
+        check_hints(LText, Hints), !,
+        % format("UNUM2: ~w\n", [LText]),
+        % check_parent(N, Parent),          % Somewhere up there is a parent
         ::replace(element(N, P, T, A, S),
             element(N, P, T, [ section=Sec | A ], S)).
 
     unum_sec(_).
+
+    check_parent(_, none).
+    check_parent(N, Parent) :-
+        N >= 1,
+        prev(N, N0),
+        ::element(N0, _, text, SA, _),   % TODO: Make local cash with dynamics parent_section(Sec, Number)
+        option(section(Parent), SA), !.
+
+    check_parent(N, Parent) :-
+        N >= 1,
+        prev(N, N0),
+        check_parent(N0, Parent).
+
 
     :- protected(unnumbered_section/3).
     :- info(unnumbered_section/3, [
@@ -127,8 +140,7 @@
         ::element(N, P, text, A, S),
         ::section(element(N, P, text, A, S)), !,
         ::replace(element(N, P, text, A, S),
-                  element(N, P, text,
-                          [in_section=Parent|A], S)),
+                  element(N, sp(Parent,P), text, A, S)),  % sp = section, page
         next(N,N1),
         associate(N1, End, N).
 
@@ -137,8 +149,7 @@
         ::element(N, P, text, A, S),
         \+ ::section(element(N,P,text,A,S)), !,
         ::replace(element(N, P, text, A, S),
-                  element(N, P, text,
-                          [in_section=Parent|A], S)),
+                  element(N, sp(Parent,P), text, A, S)),
         next(N, N1),
         associate(N1, End, Parent).
 
@@ -158,7 +169,13 @@
     next(N, N1) :-
         ::neighbor_num(N, N1), !.
     next(N, N1) :-
+        var(N1), !,
         N1 is N + 1.
+    next(N, N1) :-
+        var(N), !,
+        N is N1 - 1.
+
+    prev(N, N0) :- next(N0, N).
 
 
 
