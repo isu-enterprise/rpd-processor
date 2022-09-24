@@ -52,6 +52,7 @@
     unnumbered_section(current_control_examples, current_control, [пример, оценочн, средств, текущ, контрол]).
     unnumbered_section(intermediate_control_questions, intermediate_control, [список, вопрос, промежуточн, аттестац]).
     unnumbered_section(intermediate_control_examples, intermediate_control, [пример, оценочн, средств, промежуточн, аттестац]).
+    unnumbered_section(author, none, [разработч, ":"]).
 
     :- protected(section_title/2).
     :- info(section_title/2, [
@@ -86,5 +87,6 @@
     section_title(current_control_examples, "Примеры оценочных средств текущего контроля").
     section_title(intermediate_control_questions, "Список вопросов для промежуточной аттестации:").
     section_title(intermediate_control_examples, "Примеры оценочных средств для промежуточной аттестации:").
+    section_title(author, "Разработчик:").
 
 :- end_category.

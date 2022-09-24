@@ -26,6 +26,7 @@
 
     field(intermediate_control_type, content,  [форм, промежуточн, аттестац, ':'], strip(till("."))).
     field(intermediate_control_hours, content,  [объем, дисциплины, составл, ' '], ich).
+    field(author, author,  [разработчик, ':'], author).
 
     :- protected(get_field_data/3).
     :- info(get_field_data/3, [
@@ -33,15 +34,18 @@
     ]).
 
     get_field_data(Text, ich, [Z,H]) :-
-        % debugger::trace,
         re_matchsub("^.*?(\\d+).+?ед.*?(\\d+).*?ч.*?$", Text, Dict, []),
         get_dict(1, Dict, Z),
         get_dict(2, Dict, H).
-
     get_field_data(Text, ich, [Z,H]) :-
         re_matchsub("^.*?(\\d+).+?ч.*?(\\d+).*?ед.*?$", Text, Dict, []),
         get_dict(1, Dict, H),
         get_dict(2, Dict, Z).
+
+    get_field_data(Text, author, [Name, Affils]) :-
+        re_matchsub("^\s*(.*?)\s*,\s*(.*?)\\.?$", Text, Dict, []),
+        get_dict(1, Dict, Name),
+        get_dict(2, Dict, Affils).
 
     get_field_data(Text, F, Data) :-
         ^^get_field_data(Text, F, Data).
@@ -53,5 +57,5 @@
 
     field_title(intermediate_control_type, "Форма промежуточной аттестации:").
     field_title(intermediate_control_hours, "Объем дисциплины составляет ~w зачетных единиц, ~w час.").
-
+    field_title(author, "Разработчик: ~w, ~w.").
 :- end_category.

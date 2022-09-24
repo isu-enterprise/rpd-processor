@@ -73,7 +73,11 @@
         string_lower(Text, LText),
 %        ( N = 194 -> debugger::trace; true),
         ::check_hints(LText, Hints, Rest), !,
-        ::get_field_data(Rest, Term, Data), !,
+        string_length(Text, LT),
+        string_length(Rest, LR),
+        Before is LT - LR,
+        sub_string(Text, Before, LR, 0, ORest),
+        ::get_field_data(ORest, Term, Data), !,
         ::element(N, _, text, _, _),
         ::replace(element(N, sp(Sec, P), text, A, S),
                   element(N, sp(Sec, P), text, [field=f(Name, Data) | A], S)).
