@@ -70,6 +70,7 @@
 	text_name(b,bold).
 	text_name(text,text).
 	text_name(i,italic).
+	text_name(a,anchor).
 
     count_neighbors(text, Par) :-
        P is Par + 1,
@@ -301,12 +302,13 @@
     print_as_text(Tag) :-
 		forall(gen(N), print_as_text(Tag, N)).
 
-    print_as_text(Tag, N) :-
-        element(N, P, Tag, Attrs, S), !,
+    print_as_text(Tag, _N) :-
+        element(_N, _P, Tag, _Attrs, S), !,
         % (N = 26 -> debugger::trace; true),
         gettext(S, Text),
         % Text = S,
-        format("~w-~w ~w ~w\n", [N, P, Text, Attrs]).
+        % format("~w-~w ~w ~w\n", [_N, _P, Text, _Attrs]).
+        format("~w\n", [Text]).
 
     print_as_text(_, _).
 

@@ -20,7 +20,7 @@
 	family CDATA #REQUIRED
 	color CDATA #REQUIRED
 >
-<!ELEMENT text (#PCDATA | b | i)*>
+<!ELEMENT text (#PCDATA | b | i | a)*>
 <!ATTLIST text
 	top CDATA #REQUIRED
 	left CDATA #REQUIRED
@@ -30,3 +30,7 @@
 >
 <!ELEMENT b (#PCDATA)>
 <!ELEMENT i (#PCDATA)>
+<!ELEMENT a (#PCDATA)>
+<!ATTLIST a
+    href CDATA #REQUIRED
+>
