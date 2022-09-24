@@ -38,7 +38,7 @@
       ::process_features, !,
       msg("Merging lines into paragraphs"),
       ::process_merge, !,
-      msg(Processing the titlepage"),
+      msg("Processing the titlepage"),
       ::process_first_page, !,
       msg("Findig sections"),
       ::process_syllabus_sections, !,
