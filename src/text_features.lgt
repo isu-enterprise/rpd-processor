@@ -112,6 +112,7 @@
         comment is 'List of Ding symbols used for bullet list bullets.'
     ]).
 
+    ding_symbol("").
     ding_symbol("●").
     ding_symbol("-").
     ding_symbol("—").
