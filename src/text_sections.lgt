@@ -49,8 +49,8 @@
         string_lower(Text, LText), !,
         % re_matchsub(RegExp, LText, Dict, []), !,
         % debugger::trace,
-        check_hints(LText, Hints),
-        format("NS: ~w ~w\n", [LText, Hints]).
+        check_hints(LText, Hints).
+        % format("NS: ~w ~w\n", [LText, Hints]).
 
     number_section0(N, Sec) :-
         ::number_section([N], Sec), !.
@@ -98,35 +98,51 @@
     ]).
 
     associate_paragraphs :-
-        forall( section(E), associate(E)).
+        ::range(Start, End),
+        associate(Start, End, none).
 
     :- public(section/1).
     :- info(section/1, [
         comment is 'Is this element a section?'
     ]).
 
-    section(E) :-
-        ::gen(N),
-        ::element(N, P, T, A, S),
-        E = element(N, P, T, A, S),
-        is_section(E).
-
-    is_section(element(N, P, T, A, S)) :-
+    section(element(_, _, text, A, _)) :-
         option(section(_), A).
 
-    associate(E) :-
-        E = element(Start, P, text, A, S),
-        S1 is Start + 1,
-        ::gen(S1, N),
-        ::element(S1, Par, text, A2, S2),
-        ( is_section(element(S1, Par, text, A2, S2) -> !, fail; true),
-        ::replace(element(S1, Par, text, A2, S2),
-                  element(S1, Par, text, [in_section=Start|A2], S2)),
-        fail.
+    associate(N, End, _Parent) :-  % Parent section
+        N =< End,
+        ::element(N, P, text, A, S),
+        ::section(element(N, _, text, A, S)), !,
+        next(N,N1),
+        associate(N1, End, N).
 
-    associate(_).
+    associate(N, End, Parent) :-  % Parent section
+        N =< End,
+        ::element(N, P, text, A, S),
+        \+ ::section(element(N,P,text,A,S)), !,
+        ::replace(element(N, P, text, A, S),
+                  element(N, P, text,
+                          [in_section=Parent|A], S)),
+        next(N, N1),
+        associate(N1, End, Parent).
 
+    associate(N, End, Parent) :-  % Parent section
+        N =< End,
+        ::element(N, _, page, _, _), !,
+        N1 is N + 1,
+        associate(N1, End, Parent).
 
+    associate(N, E, P) :-
+        N =< E,
+        next(N, N1), !,
+        associate(N1, E, P).
+
+    associate(_,_,_).
+
+    next(N, N1) :-
+        ::neighbor_num(N, N1), !.
+    next(N, N1) :-
+        N1 is N + 1.
 
 
 

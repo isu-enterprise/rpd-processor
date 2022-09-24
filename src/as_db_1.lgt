@@ -98,15 +98,15 @@
        %   count_neighbors(text, N1); true ).
 
 
+	:- protected(element/5).
 	:- info(element/5, [
 		comment is 'Dynamic predicate represents an element of a PDF structure.'
 	]).
-
-	:- protected(element/5).
     :- dynamic(element/5).
 
-	:- protected(neighborN/5).
-    :- info(neighborN/5, [
+
+	:- protected(neighborN/2).
+    :- info(neighborN/2, [
 		comment is 'Dynamic prdicate defines that two element of the same kind are neighbors'
 	]).
 	:- dynamic(neighborN/2).
@@ -190,6 +190,14 @@
     neighbor(element(N1, P, Tag, _, _),element(N2, P, Tag, A2, S2)):-
        neighborN(N1, N2),
        element(N2, P, Tag, A2, S2).
+
+    :- protected(neighbor_num/2).
+    :- info(neighbor_num/2, [
+       comment is 'Neigbors defined as line numbers'
+    ]).
+
+    neighbor_num(A, B) :- neighborN(A,B).
+
 
     find_neighbor(element(N1, Par, Tag, _, _), element(N2, Par, Tag, Attrs2, S2)) :-
        range(_, End), N1 < End, !,

@@ -31,11 +31,19 @@
    ]).
 
    process :-
+      msg("Processing attrs"),
       ::process_attrs, !,
+      msg("Gathering features"),
       ::process_features, !,
+      msg("Merging lines into paragraphs"),
       ::process_merge, !,
+      msg("Findig sections"),
       ::process_syllabus_sections, !,
+      msg("Finished"),
       true.
+
+   msg(S) :-
+      format("% ~w\n", [S]).
 
 
 :- end_object.
