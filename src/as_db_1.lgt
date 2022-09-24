@@ -310,5 +310,36 @@
 
     print_as_text(_, _).
 
+    :- protected(next/2).
+    :- info(next/2, [
+        comment is 'Get next number, possibly with neighbor stuff'
+    ]).
+
+    next(N, N1) :-
+        ::neighbor_num(N, N1), !.
+    next(N, N1) :-
+        var(N1), !,
+        N1 is N + 1.
+    next(N, N1) :-
+        var(N), !,
+        N is N1 - 1.
+
+    :- protected(prev/2).
+    :- info(prev/2, [
+        comment is 'Get previous number, pussibly with neighborhood'
+    ]).
+
+    prev(N, N0) :- next(N0, N).
+
+    :- protected(check_hints/3).
+    :- info(check_hints/3, [
+        comment is 'Check wether a word list contained in a string. Returns the resto of the string.'
+    ]).
+
+    check_hints(S, [], S).
+    check_hints(Text, [H|T], Rest) :-
+        sub_string(Text, _, _, After, H), !,
+        sub_string(Text, _, After, 0, SubText), !,
+        check_hints(SubText, T, Rest).
 
 :- end_object.

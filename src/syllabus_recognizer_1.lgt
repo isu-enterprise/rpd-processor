@@ -3,8 +3,10 @@
    imports([text_attrib,
             text_features,
             text_merge,
+            text_syllabus_sections,
             syllabus_page_one,
-            text_syllabus_sections])).
+            text_syllabus_fields
+            ])).
 
    :- info([
       version is 1:0:0,
@@ -42,6 +44,8 @@
       ::process_first_page, !,
       msg("Findig sections"),
       ::process_syllabus_sections, !,
+      msg("Findig fields"),
+      ::process_syllabus_fields, !,
       msg("Finished"),
       true.
 

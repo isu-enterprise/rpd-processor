@@ -19,13 +19,13 @@
         'src/text_merge',
         'src/syllabus_page_one',
         'src/text_sections',
-        'src/text_syllabus_sections',
+        'src/text_syllabus_sections',   % configuration
+        'src/text_fields',
+        'src/text_syllabus_fields',     % configuration
 
         'src/syllabus_recognizer_1',
 
         'src/test']),
-    % debugger::debug,
-    % pkt_run::run,
     test::run,
     test::attrib_test,
     true

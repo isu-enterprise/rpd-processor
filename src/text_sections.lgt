@@ -47,17 +47,11 @@
 
     number_section0(N, Sec, Text) :-
         ::number_section(N, Sec, _Parent, Hints),
-        check_hints(Text, Hints), !.
+        ::check_hints(Text, Hints, _), !.
 
     % number_section0(N, Sec, Text) :-
     %     ::number_section([N], Sec, _, _),
     %     number_section0([N], Sec, Text).
-
-    check_hints(_, []).
-    check_hints(Text, [H|T]) :-
-        sub_string(Text, _, _, After, H), !,
-        sub_string(Text, _, After, 0, SubText), !,
-        check_hints(SubText, T).
 
     :- protected(number_section/4).
     :- info(number_section/4, [
@@ -92,7 +86,7 @@
         ::gettext(S, Text),
         string_lower(Text, LText),
         ::unnumbered_section(Sec, _Parent, Hints),
-        check_hints(LText, Hints), !,
+        ::check_hints(LText, Hints, _), !,
         % format("UNUM2: ~w\n", [LText]),
         % check_parent(N, Parent),          % Somewhere up there is a parent
         ::replace(element(N, P, T, A, S),
@@ -103,13 +97,13 @@
     check_parent(_, none).
     check_parent(N, Parent) :-
         N >= 1,
-        prev(N, N0),
+        ::prev(N, N0),
         ::element(N0, _, text, SA, _),   % TODO: Make local cash with dynamics parent_section(Sec, Number)
         option(section(Parent), SA), !.
 
     check_parent(N, Parent) :-
         N >= 1,
-        prev(N, N0),
+        ::prev(N, N0),
         check_parent(N0, Parent).
 
 
@@ -141,7 +135,7 @@
         ::section(element(N, P, text, A, S)), !,
         ::replace(element(N, P, text, A, S),
                   element(N, sp(Parent,P), text, A, S)),  % sp = section, page
-        next(N,N1),
+        ::next(N,N1),
         associate(N1, End, N).
 
     associate(N, End, Parent) :-  % Parent section
@@ -150,7 +144,7 @@
         \+ ::section(element(N,P,text,A,S)), !,
         ::replace(element(N, P, text, A, S),
                   element(N, sp(Parent,P), text, A, S)),
-        next(N, N1),
+        ::next(N, N1),
         associate(N1, End, Parent).
 
     associate(N, End, Parent) :-  % Parent section
@@ -161,21 +155,10 @@
 
     associate(N, E, P) :-
         N =< E,
-        next(N, N1), !,
+        ::next(N, N1), !,
         associate(N1, E, P).
 
     associate(_,_,_).
-
-    next(N, N1) :-
-        ::neighbor_num(N, N1), !.
-    next(N, N1) :-
-        var(N1), !,
-        N1 is N + 1.
-    next(N, N1) :-
-        var(N), !,
-        N is N1 - 1.
-
-    prev(N, N0) :- next(N0, N).
 
 
 
