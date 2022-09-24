@@ -112,7 +112,7 @@
     associate(N, End, _Parent) :-  % Parent section
         N =< End,
         ::element(N, P, text, A, S),
-        ::section(element(N, _, text, A, S)), !,
+        ::section(element(N, P, text, A, S)), !,
         next(N,N1),
         associate(N1, End, N).
 
