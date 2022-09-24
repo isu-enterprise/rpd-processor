@@ -18,8 +18,10 @@
         'src/text_features',
         'src/text_merge',
         'src/syllabus_page_one',
+        'src/text_sections',
+        'src/text_syllabus_sections',
 
-        'src/recognizer_1',
+	'src/recognizer_1',
 
         'src/test']),
     % debugger::debug,

@@ -15,14 +15,15 @@
 
    % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/B1.O.30_Sistemy_iskusstvennogo_intellekta_4003.pdf.xml").
    % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/simple.xml").
-   xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/russian.xml").
+   % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/russian.xml").
+   xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/ex1.xml").
 
    :- public(run/0).
    :- info(run/0, [
       comment is 'Issues and informative message'
    ]).
 
-   run:-format("Hello world\n").
+   run:-format("Syllabus PDF->RDFa converter\n").
 
    :- public(xml_test/0).
    :- info(xml_test/0, [
@@ -44,7 +45,8 @@
       XML = xml_loader(Name),
       O = as_db(XML),
       O::convert,
-      O::print.
+      O::print,
+      true.
 
    :- public(attrib_test/0).
    :- info(attrib_test/0, [

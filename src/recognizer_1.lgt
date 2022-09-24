@@ -3,7 +3,8 @@
    imports([text_attrib,
             text_features,
             text_merge,
-            syllabus_page_one])).
+            syllabus_page_one,
+            text_syllabus_sections])).
 
    :- info([
       version is 1:0:0,
@@ -31,11 +32,21 @@
    ]).
 
    process :-
+      msg("Processing attrs"),
       ::process_attrs, !,
+      msg("Gathering features"),
       ::process_features, !,
+      msg("Merging lines into paragraphs"),
       ::process_merge, !,
+      msg(Processing the titlepage"),
       ::process_first_page, !,
+      msg("Findig sections"),
+      ::process_syllabus_sections, !,
+      msg("Finished"),
       true.
+
+   msg(S) :-
+      format("% ~w\n", [S]).
 
 
 :- end_object.
