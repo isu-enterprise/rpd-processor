@@ -7,6 +7,8 @@
 		comment is 'Represents an XML document as a set of lines'
 	]).
 
+    :- use_module(lists, [member/2, append/3]).
+
 	:- public(convert/0).
 	:- info(convert/0, [
 		comment is 'Converts _XML_ to a set of elements'
@@ -39,23 +41,39 @@
 
 	convert(element(Name, Attrs, Terms), N, N2, Parent) :-
         convertattrs(Attrs, NAttrs),
+        format("CNV: <~w ~w>\n", [Name, NAttrs]),
 		convert1(element(Name, NAttrs, Terms), Parent, N, RestTerms),
 		N1 is N + 1,
 		convert(RestTerms, N1, N2, N).
 
-	convert1(element(text, Attrs, [element(Tag, [], [Atom])]), Parent, N, []) :- !,
+	convert1(element(text, Attrs, List), Parent, N, []) :- !,
 		text_name(Tag, ExtTag), !,
-        atom_string(Atom, String), !,
-		assertz(element(N, Parent, text, [ExtTag=true|Attrs], String)).
+        convert_el_list(List, CList),
+        append(EAttrs, Attrs, JAttrs), !,
+		assertz(element(N, Parent, text, [ ExtTag=true | JAttrs], CList)).
 
-	convert1(element(Name, Attrs, [Atom]), Parent, N, []) :-
-		text_name(Name,ExtName), !,
-        atom_string(Atom, String), !,
-		assertz(element(N, Parent, ExtName, Attrs, String)).
+% 	convert1(element(Name, Attrs, ), Parent, N, []) :-
+% 		text_name(Name,ExtName), !,
+% %        debugger::trace,
+%         atom_string(Atom, String), !,
+% 		assertz(element(N, Parent, ExtName, Attrs, String)).
 
 			% Defaults to just assert Name(N, Attrs, Parent)
 	convert1(element(Name, Attrs, Terms), Parent, N, Terms) :-
+%        debugger::trace,
 		assertz(element(N, Parent, Name, Attrs, '')).
+
+    convert_el_list([], []).
+    convert_el_list([element(Tag, Attrs, [Atom]) | T],
+                    [ element(0, 0, text, CAttrs, Text) | CT ]) :- !,
+        convertattrs(Attrs, CAttrs),
+        text_name(Tag, Name),
+        atom_string(Atom, Text),
+        convert_el_list(T, CT).
+
+    convert_el_list([Atom | T], [Text | CT]):-
+        atom_string(Atom, Text),
+        convert_el_list(T, CT).
 
     convertattrs([], []).
     convertattrs([K=V|T], [K=NV|T1]) :-

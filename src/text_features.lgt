@@ -49,7 +49,7 @@
         re_matchsub("^\\s*?([А-Я][а-яА-Я]{2,})\\s*(:|\\))", Text, Dict, []),
         % TODO задачи: цели: .... from a user set of fields
         % format("RE: ~w | ~w\n", [Dict, Text]),
-        long_enough(S, Dict),
+        long_enough(Text, Dict),
         get_dict(1, Dict, ItemName),
         ItemName \= "",
         ::replace(element(N, P, T, A, S),
@@ -64,7 +64,7 @@
         % format("RE: ~w\n~w\n", [Dict, Text]),
         get_dict(2, Dict, Item),
         Item \= "",
-        long_enough(S, Dict),
+        long_enough(Text, Dict),
         get_dict(1, Dict, ItemName),
         convert_item(Item, CItem),
         % format("FRM2:~w ~w\n",[Item, CItem]),
