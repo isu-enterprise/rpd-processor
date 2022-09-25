@@ -18,7 +18,7 @@
 
     process_fonts :-
         ::range(fontspec, Start, End),
-        debugger::trace,
+        % debugger::trace,
         count_fonts(Start, End),
         true.
 
@@ -31,12 +31,10 @@
     count_fonts(N, End) :-
         N =< End,
         ::element(N, _, fontspec, Attrs, _), !,
-        proc_font(N, Attrs), !,
-        ::neighbor(element(N, _, fontspec, Attrs, _),
-                   element(N2, _, fontspec, _, _)), !,
-        count_fonts(N2, End).
-
-    count_fonts(_, _).
+        proc_font(N, Attrs),
+        ( ::neighbor(element(N, _, fontspec, Attrs, _),
+                     element(N2, _, fontspec, _, _)) ->
+          count_fonts(N2, End) ; true ).
 
     proc_font(N, Attrs) :-
         select_option(id(Id), Attrs, A1),
@@ -62,7 +60,14 @@
 
     font_features(Name, Family, no, no, []) :-
         re_matchsub("^.*?\\+(.*?)$", Name, Dict, []),
+        get_dict(1, Dict, Family), !.
+
+    font_features(Name, Family, no, no, []) :-
+        re_matchsub("^(.*?)(PS|MT)?.*$", Name, Dict, []),
         get_dict(1, Dict, Family).
+    font_features(Name, _, _, _, _) :-
+        format("%%%% ERROR: Cannot deal with font '~w'\n", [Name]),
+        fail.
 
     :- protected(font_series/4).
     % :- mode(font_series, Solutions).
@@ -82,6 +87,17 @@
     font_series0([X | T], Bold, Italic, [X | O]) :-
         font_series0(T, Bold, Italic, O).
 
+
+    :- protected(equal_font/2).
+    % :- mode(equal_font, Solutions).
+    :- info(equal_font/2, [
+        comment is 'Are argunebts equal in sense of font definition?'
+    ]).
+
+    equal_font(A, A) :- !.
+    equal_font(F1, F2) :-
+        ::font(_, F1, Sz, Family, Bold, Italic, _, Color),
+        ::font(_, F2, Sz, Family, Bold, Italic, _, Color), !.
 
 
 

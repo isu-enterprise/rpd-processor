@@ -9,8 +9,9 @@
 	]).
 
 	:- use_module(lists, [member/2]).
-	:- use_module(library(option),
-		[option/2, option/3]).
+	:- use_module(library(option), [option/2, option/3]).
+    :- use_module(library(pcre), [re_match/2, re_match/3,
+                                  re_matchsub/4, re_split/4]).
 
 	:- public(centered/2).
 	:- info(centered/2, [
@@ -71,7 +72,7 @@
 
     rule(textsize, element(Page, Par, page, PAttrs, PS)) :-
         findall(Lay,
-            (::element(_, Page, text, Attrs, _), layout(Attrs, Lay)),
+            (::element(_, Page, text, Attrs, S), \+ degraded(S, Page), layout(Attrs, Lay)),
             List),
         bbox(List, lay(L,T,W,H)), !,
         ::replace(element(Page, Par, page, PAttrs, PS), element(Page, Par, page,
@@ -106,5 +107,17 @@
     % print0 :-
     %        forall(::element(N, P, Na, A, S), format("~w-~w-~w ~w '~w'\n", [N, P, Na, A, S])).
 
+    empty(S) :-
+        ::gettext(S, T),
+        re_match("^\\s*$", T, []).
+
+    degraded(S, _) :-
+        empty(S), !.
+    degraded(S, P) :-
+        ::gettext(S, T),
+        re_matchsub("\\d+", T, Dict, []),
+        get_dict(0, Dict, NS),
+        number_string(N, NS),
+        P = N.
 
 :- end_category.

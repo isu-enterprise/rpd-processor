@@ -38,19 +38,21 @@
    process :-
       msg("Processing font definitions"),
       ::process_syllabus_fonts, !,
-      % msg("Processing attrs"),
-      % ::process_attrs, !,
-      % msg("Gathering features"),
-      % ::process_features, !,
-      % msg("Merging lines into paragraphs"),
-      % ::process_merge, !,
-      % msg("Processing the titlepage"),
-      % ::process_first_page, !,
-      % msg("Findig sections"),
-      % ::process_syllabus_sections, !,
-      % msg("Findig fields"),
-      % ::process_syllabus_fields, !,
-      % msg("Finished"),
+      msg("Processing attrs"),
+      ::process_attrs, !,
+      msg("Remove degraded artifacts"),
+%      ::process_removels, !,  % TODO
+      msg("Gathering features"),
+      ::process_features, !,
+      msg("Merging lines into paragraphs"),  % TODO: word-merge with dings of strange size
+      ::process_merge, !,
+      msg("Processing the titlepage"),
+      ::process_first_page, !,
+      msg("Findig sections"),
+      ::process_syllabus_sections, !,
+      msg("Findig fields"),
+      ::process_syllabus_fields, !,
+      msg("Finished"),
       true.
 
    msg(S) :-
