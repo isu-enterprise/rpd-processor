@@ -227,7 +227,7 @@
        option(top(T2), Attrs2),
        option(height(H2), Attrs2),
        B2 = T2 + H2,
-       ( (B1 >= B2, T1 < B2) ; ( T1 =< T2, B2 > T2) ).
+       ( (T1 >= B2 ; T2 >= B1) -> fail; true ).
 
    par_start(element(_, _, _, A, _)) :-
        par_option(O),
