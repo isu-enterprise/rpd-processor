@@ -9,7 +9,7 @@
 
     :- use_module(lists, [member/2, append/3]).
     :- use_module(library(option), [select_option/3, select_option/4,
-                                    option/3]).
+                                    option/3, option/2]).
 
 	:- public(convert/0).
 	:- info(convert/0, [
@@ -93,39 +93,20 @@
         ::next(N, N1),
         FN =.. [T, N],
         ( select_option(FP, L, R) ->
-           assertz(neighborN(Prev,N)) ; R = L ),
+           assertz(neighborN(Prev,N)) ;
+           R = L,
+           asserta(range(T, N, Last)) ), !,
         count_neighbors(N1, Last, [FN | R]).
 
-    count_neighbors(_, _, _).
+    count_neighbors(_, _, L) :-
+        forall(member(O, L), end_range(O)).
 
+    end_range(Term) :-
+        Term =.. [T, End],
+        retract(range(T, Begin, _)),
+        asserta(range(T, Begin, End)),
+        !.
 
-
-
-    % count_neighbors(text, Par) :-
-    %    P is Par + 1,
-    %    gen(P, N),
-    %    element(N, Par, text, A, S), !,  % The first one
-    %    count_neighbors(element(N, Par, text, A, S)), !.
-
-    % count_neighbors(page) :-
-    %    gen(N),
-    %    element(N, Par, page, A, S), !,  % The first one
-    %    count_neighbors(element(N, Par, page, A, S)), !.
-
-    % count_neighbors(element(N1, P, Tag, A1, S1)):-
-    %    find_neighbor(element(N1, P, Tag, A1, S1), element(N2, P, Tag, A2, S2)), !,
-    %    assertz(neighborN(N1,N2)), !,
-    %    ( Tag = page ->
-    %      % format("CN: ~w\n",[element(N1, P, Tag, A1, S1)]),
-    %      % (N1=53 -> debugger::trace; true),
-    %      count_neighbors(text, N1); true ),
-    %    count_neighbors(element(N2, P, Tag, A2, S2)).
-
-    % count_neighbors(element(N1, _, Tag, _, _)):-
-    %    ( Tag = page -> count_neighbors(text, N1); true ).
-    %    % ( Tag = page ->
-    %    %   format("CN: ~w\n",[element(N1, P, Tag, A1, S1)]),
-    %    %   count_neighbors(text, N1); true ).
 
 
 	:- protected(element/5).
@@ -147,6 +128,12 @@
 		comment is 'Dynamic predicate defines the range of id variation for the elements'
 	]).
 	:- dynamic(range/2).
+
+	:- protected(range/3).
+    :- info(range/3, [
+		comment is 'Dynamic predicate defines the range of id variation for elements of a kind'
+	]).
+	:- dynamic(range/3).
 
 
 	:- public(print/0).
@@ -217,9 +204,9 @@
        comment is 'Two lines are neighbors and have same tag = text, page'
     ]).
 
-    neighbor(element(N1, P, Tag, _, _),element(N2, P, Tag, A2, S2)):-
+    neighbor(element(N1, _, Tag, _, _),element(N2, P2, Tag, A2, S2)):-
        neighborN(N1, N2),
-       element(N2, P, Tag, A2, S2).
+       element(N2, P2, Tag, A2, S2).
 
     :- protected(neighbor_num/2).
     :- info(neighbor_num/2, [

@@ -135,6 +135,7 @@
 
     ding_symbol("").
     ding_symbol("●").
+    ding_symbol("•").
     ding_symbol("-").
     ding_symbol("—").
     ding_symbol("–").

@@ -60,8 +60,8 @@
       O = syllabus_recognizer(XML),
       O::convert,
       O::process,
-      % O::print(_), nl,nl,
-      O::print_as_text(_),
+      O::print(_), nl,nl,
+      % O::print_as_text(_),
       true.
 
 :- end_object.

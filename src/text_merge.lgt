@@ -20,23 +20,43 @@
 
     process_merge :-
         simple_word_merge(text),
-        simple_lines_merge(text),
-        page_lines_merge(page).
+        ::range(text, Start, End),
+        simple_lines_merge(Start, End, text),
+        page_lines_merge(page),
+        true.
 
     :- protected(simple_lines_merge/1).
     :- info(simple_lines_merge/1, [
        comment is 'Merges two lines'
     ]).
 
-    simple_lines_merge(Tag) :-
-       ::element(N, P, Tag, Attrs, S),
-       A = element(N, P, Tag, Attrs, S),
-       ::neighbor(A,B),
-       lines_mergable(A,B),
-       merge(A,B), !,
-       simple_lines_merge(Tag).
+    simple_lines_merge(Start, End, Tag) :-
+       %repeat,
+       %debugger::trace,
+       simple_lines_merge(Start, End, Tag, Merged),
+       format("Merged: ~w\n", [Merged]),
+       Merged == 0, !.
+    simple_lines_merge(_, _, _).
 
-    simple_lines_merge(_).
+    simple_lines_merge(N, End, Tag, Merged) :-
+       N < End,
+       ::element(N, P, Tag, Attrs, S), !,
+       % debugger::trace,
+       A = element(N, P, Tag, Attrs, S),
+       % format("LINE: ~w\n", [A]),
+       % (N = 52 -> debugger::trace; true),
+       ::neighbor(A,B),
+       ( lines_mergable(A,B) ->
+           % format("MERGE: ~w\n", [B]),
+           merge(A,B), !,
+           simple_lines_merge(N, End, Tag, Merged2),
+           Merged is Merged2 + 1,
+           true
+           ;
+           B = element(N1, _, Tag, _, _),
+           simple_lines_merge(N1, End, Tag, Merged) ).
+
+    simple_lines_merge(_, _, _, 0).
 
     :- protected(simple_word_merge/1).
     :- info(simple_word_merge/1, [

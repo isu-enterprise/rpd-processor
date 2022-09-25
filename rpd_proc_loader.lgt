@@ -14,6 +14,8 @@
     logtalk_load([
         'src/xml_loader_1',
         'src/as_db_1',
+        'src/fonts',
+        'src/syllabus_fonts',
         'src/text_attrib',
         'src/text_features',
         'src/text_merge',

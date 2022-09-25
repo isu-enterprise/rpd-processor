@@ -1,6 +1,8 @@
 :- object(syllabus_recognizer(_XML_),
    extends(as_db(_XML_)),
-   imports([text_attrib,
+   imports([
+            syllabus_fonts,
+            text_attrib,
             text_features,
             text_merge,
             text_syllabus_sections,
@@ -34,6 +36,8 @@
    ]).
 
    process :-
+      msg("Processing font definitions"),
+      ::process_syllabus_fonts, !,
       msg("Processing attrs"),
       ::process_attrs, !,
       msg("Gathering features"),
