@@ -105,6 +105,7 @@
         Term =.. [T, End],
         retract(range(T, Begin, _)),
         asserta(range(T, Begin, End)),
+        format("% range for ~w ~w-~w\n", [T, Begin, End]),
         !.
 
 
@@ -122,6 +123,21 @@
 	]).
 	:- dynamic(neighborN/2).
 
+    :- protected(font/8).
+    % :- mode(font, Solutions).
+    :- info(font/8, [
+        comment is 'Defines font'
+    ]).
+    :- dynamic(font/8).
+
+    :- public(add_font/8).
+    % :- mode(add_font, Solutions).
+    :- info(add_font/8, [
+        comment is 'Adds font to database'
+    ]).
+
+    add_font(Id, Num, Size, Name, Bold, Italic, Attrs, Color) :-
+        assertz(font(Id, Num, Size, Name, Bold, Italic, Attrs, Color)).
 
 	:- protected(range/2).
     :- info(range/2, [
