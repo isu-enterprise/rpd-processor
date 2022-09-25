@@ -8,6 +8,8 @@
 	]).
 
     :- use_module(lists, [member/2, append/3]).
+    :- use_module(library(option), [select_option/3, select_option/4,
+                                    option/3]).
 
 	:- public(convert/0).
 	:- info(convert/0, [
@@ -24,9 +26,10 @@
 	]).
 
 	convert(Term) :-
-		convert(Term, 1, Last, none),
-		asserta(range(1,Last)),
-        count_neighbors(page).
+		convert(Term, 1, L, none),
+        Last = L - 1,
+		asserta(range(1, Last)),
+        count_neighbors(1, Last, []).
 
 	:- public(convert/4).
 	:- info(convert/4, [
@@ -41,22 +44,15 @@
 
 	convert(element(Name, Attrs, Terms), N, N2, Parent) :-
         convertattrs(Attrs, NAttrs),
-        format("CNV: <~w ~w>\n", [Name, NAttrs]),
+        % format("CNV: <~w ~w>\n", [Name, NAttrs]),
+%        debugger::trace,
 		convert1(element(Name, NAttrs, Terms), Parent, N, RestTerms),
 		N1 is N + 1,
 		convert(RestTerms, N1, N2, N).
 
 	convert1(element(text, Attrs, List), Parent, N, []) :- !,
-		text_name(Tag, ExtTag), !,
         convert_el_list(List, CList),
-        append(EAttrs, Attrs, JAttrs), !,
-		assertz(element(N, Parent, text, [ ExtTag=true | JAttrs], CList)).
-
-% 	convert1(element(Name, Attrs, ), Parent, N, []) :-
-% 		text_name(Name,ExtName), !,
-% %        debugger::trace,
-%         atom_string(Atom, String), !,
-% 		assertz(element(N, Parent, ExtName, Attrs, String)).
+		assertz(element(N, Parent, text, Attrs, CList)).
 
 			% Defaults to just assert Name(N, Attrs, Parent)
 	convert1(element(Name, Attrs, Terms), Parent, N, Terms) :-
@@ -64,8 +60,8 @@
 		assertz(element(N, Parent, Name, Attrs, '')).
 
     convert_el_list([], []).
-    convert_el_list([element(Tag, Attrs, [Atom]) | T],
-                    [ element(0, 0, text, CAttrs, Text) | CT ]) :- !,
+    convert_el_list([ element(Tag, Attrs, [Atom]) | T],
+                    [ element(0, 0, text, [ Name = true | CAttrs ], Text) | CT ]) :- !,
         convertattrs(Attrs, CAttrs),
         text_name(Tag, Name),
         atom_string(Atom, Text),
@@ -90,31 +86,46 @@
 	text_name(i,italic).
 	text_name(a,anchor).
 
-    count_neighbors(text, Par) :-
-       P is Par + 1,
-       gen(P, N),
-       element(N, Par, text, A, S), !,  % The first one
-       count_neighbors(element(N, Par, text, A, S)), !.
+    count_neighbors(N, Last, L) :-
+        N =< Last, !,
+        element(N, _, T, _, _),
+        FP =.. [T, Prev],
+        ::next(N, N1),
+        FN =.. [T, N],
+        ( select_option(FP, L, R) ->
+           assertz(neighborN(Prev,N)) ; R = L ),
+        count_neighbors(N1, Last, [FN | R]).
 
-    count_neighbors(page) :-
-       gen(N),
-       element(N, Par, page, A, S), !,  % The first one
-       count_neighbors(element(N, Par, page, A, S)), !.
+    count_neighbors(_, _, _).
 
-    count_neighbors(element(N1, P, Tag, A1, S1)):-
-       find_neighbor(element(N1, P, Tag, A1, S1), element(N2, P, Tag, A2, S2)), !,
-       assertz(neighborN(N1,N2)), !,
-       ( Tag = page ->
-         % format("CN: ~w\n",[element(N1, P, Tag, A1, S1)]),
-         % (N1=53 -> debugger::trace; true),
-         count_neighbors(text, N1); true ),
-       count_neighbors(element(N2, P, Tag, A2, S2)).
 
-    count_neighbors(element(N1, _, Tag, _, _)):-
-       ( Tag = page -> count_neighbors(text, N1); true ).
-       % ( Tag = page ->
-       %   format("CN: ~w\n",[element(N1, P, Tag, A1, S1)]),
-       %   count_neighbors(text, N1); true ).
+
+
+    % count_neighbors(text, Par) :-
+    %    P is Par + 1,
+    %    gen(P, N),
+    %    element(N, Par, text, A, S), !,  % The first one
+    %    count_neighbors(element(N, Par, text, A, S)), !.
+
+    % count_neighbors(page) :-
+    %    gen(N),
+    %    element(N, Par, page, A, S), !,  % The first one
+    %    count_neighbors(element(N, Par, page, A, S)), !.
+
+    % count_neighbors(element(N1, P, Tag, A1, S1)):-
+    %    find_neighbor(element(N1, P, Tag, A1, S1), element(N2, P, Tag, A2, S2)), !,
+    %    assertz(neighborN(N1,N2)), !,
+    %    ( Tag = page ->
+    %      % format("CN: ~w\n",[element(N1, P, Tag, A1, S1)]),
+    %      % (N1=53 -> debugger::trace; true),
+    %      count_neighbors(text, N1); true ),
+    %    count_neighbors(element(N2, P, Tag, A2, S2)).
+
+    % count_neighbors(element(N1, _, Tag, _, _)):-
+    %    ( Tag = page -> count_neighbors(text, N1); true ).
+    %    % ( Tag = page ->
+    %    %   format("CN: ~w\n",[element(N1, P, Tag, A1, S1)]),
+    %    %   count_neighbors(text, N1); true ).
 
 
 	:- protected(element/5).
@@ -326,7 +337,7 @@
         gettext(S, Text),
         % Text = S,
         % format("~w-~w ~w ~w\n", [_N, _P, Text, _Attrs]).
-        format("~w\n", [Text]).
+        format("~w|\n", [Text]).
 
     print_as_text(_, _).
 
