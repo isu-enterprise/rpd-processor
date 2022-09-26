@@ -54,8 +54,8 @@
       O = syllabus_recognizer(XML),
       O::convert,
       O::process,
-      O::print(_), nl,nl,
-      % O::print_as_text(_),
+      %O::print(_), nl,nl,
+      O::print_as_text(_),
       true.
 
    % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/B1.O.30_Sistemy_iskusstvennogo_intellekta_4003.pdf.xml").
