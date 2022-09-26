@@ -330,16 +330,21 @@
     append(A) :-
         assertz(A).
 
-    :- public(gettext/2).
+    :- protected(gettext/2).
     :- info(gettext/2, [
         comment is 'Joins all components of list or string in a string'
     ]).
     % TODO: Consider element/5. Else it faile.
     gettext([], "") :- !.
-    gettext(element(_,_,text,_,S), T) :- !,
+    gettext(element(_,_,text,_,S), T) :- !,  % TODO: process bold, italic, etc...
         gettext(S, T).
-    gettext(A, S) :- atom(A), atom_string(A,S), !.
-    gettext(S, S) :- string(S), !.
+    gettext(A, T) :-
+        atom(A),
+        atom_string(A, S),
+        ::text_adjust(S, T), !.
+    gettext(S, T) :-
+        string(S),
+        ::text_adjust(S, T), !.
     gettext([X|T], S) :- !,
         gettext(X, XS),
         gettext(T, TS),

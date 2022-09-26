@@ -47,7 +47,7 @@
     lines_merge_next(N, End, A, Merged):-
        ::neighbor(A,B), !,
        A = element(N, _, Tag, _, _),
-       ( lines_mergable(A,B) ->
+       ( ::lines_mergable(A,B) ->
            % format("M:\n~w\n~w\n", [A, B]),
            merge(A,B), !,
            simple_lines_merge(N, End, Tag, Merged2),
@@ -313,5 +313,13 @@
       string(S), !.
    append_bodies(L1, L2, L3) :-
       append(L1, L2, L3).
+
+    :- protected(text_adjust/2).
+    % :- mode(text_adjust, Solutions).
+    :- info(text_adjust/2, [
+        comment is 'Adjust a run of a text, e.g. remove hyphenations.'
+    ]).
+
+    text_adjust(T, T). % No adjust by default.
 
 :- end_category.

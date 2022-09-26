@@ -40,6 +40,16 @@
     unterminated_sentence(T) :-
         re_match("\s+[а-я]{1,3}\s+$", T, []).
 
+    :- protected(text_adjust/2).
+    % :- mode(text_adjust, Solutions).
+    :- info(text_adjust/2, [
+        comment is 'Adjust text'
+    ]).
 
+    text_adjust(T, A) :-
+        re_split("-\s+$", T, [A|_], []), !.
+
+    text_adjust(A, B) :-
+        ^^text_adjust(A, B).
 
 :- end_category.
