@@ -50,19 +50,23 @@
 
    attrib_test :-
       xml_file_name(Name),
+      html_file_name(HTMLFN),
       XML = xml_loader(Name),
-      O = syllabus_recognizer(XML),
+      O = syllabus_recognizer(XML, HTMLFN),
       O::convert,
       O::process,
-      %O::print(_), nl,nl,
-      O::print_as_text(_),
+      O::print(_), nl,nl,
+      % O::print_as_text(_),
       true.
 
    % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/B1.O.30_Sistemy_iskusstvennogo_intellekta_4003.pdf.xml").
    % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/simplest.xml").
    % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/simple.xml").
    % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/russian.xml").
-   % 1xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/ex1.xml").
-   xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/ex2.xml").
+   % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/ex1.xml").
+   % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/ex2.xml").
+   xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/ex3.xml").
+
+   html_file_name("/home/eugeneai/projects/code/rpd-processor/data/result.html").
 
 :- end_object.

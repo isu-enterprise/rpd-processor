@@ -1,4 +1,4 @@
-:- object(syllabus_recognizer(_XML_),
+:- object(syllabus_recognizer(_XML_, _HTML_File_Name_),
    extends(as_db(_XML_)),
    imports([
             syllabus_fonts,
@@ -9,7 +9,8 @@
             syllabus_merge,
             text_syllabus_sections,
             syllabus_page_one,
-            text_syllabus_fields
+            text_syllabus_fields,
+            htmlize
             ])).
 
    :- info([
@@ -46,14 +47,24 @@
       ::process_degraded, !,
       msg("Gathering features"),
       ::process_features, !,
-      msg("Merging lines into paragraphs"),  % TODO: word-merge with dings of strange size
+      msg("Merging lines into paragraphs"),
       ::process_merge, !,
+      msg("Gathering features, Pass 2"),
+      ::process_features, !,
+      msg("Merging lines into paragraphs, Pass 2"),
+      ::process_merge, !,
+      % msg("Gathering features, Pass 3"),
+      % ::process_features, !,
+      % msg("Merging lines into paragraphs, Pass 3"),
+      % ::process_merge, !,
       msg("Processing the titlepage"),
       ::process_first_page, !,
       msg("Findig sections"),
       ::process_syllabus_sections, !,
       msg("Findig fields"),
       ::process_syllabus_fields, !,
+      msg("Write HTML of the result"),
+      ::htmlize(_HTML_File_Name_), !,
       msg("Finished"),
       true.
 

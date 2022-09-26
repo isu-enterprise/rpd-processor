@@ -34,9 +34,9 @@
     ]).
 
     unterminated_sentence(T) :-
-        re_match("-\s+$", T, []).
+        re_match("[-/+=–]\s*$", T, []).
     unterminated_sentence(T) :-
-        re_match("url\s+:\s*$", T, []).
+        re_match("url\s*:\s*$", T, []).
     unterminated_sentence(T) :-
         re_match("\s+[а-я]{1,3}\s+$", T, []).
 

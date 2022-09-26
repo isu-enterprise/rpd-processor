@@ -81,6 +81,12 @@
         number_string(V1, S), !.
     convertv(V,V).
 
+    :- protected(text_name/2).
+    % :- mode(text_name, Solutions).
+    :- info(text_name/2, [
+        comment is 'Associates tag with attribute'
+    ]).
+
 	text_name(b,bold).
 	text_name(text,text).
 	text_name(i,italic).
@@ -338,17 +344,16 @@
     gettext([], "") :- !.
     gettext(element(_,_,text,_,S), T) :- !,  % TODO: process bold, italic, etc...
         gettext(S, T).
-    gettext(A, T) :-
+    gettext(A, S) :-
         atom(A),
-        atom_string(A, S),
-        ::text_adjust(S, T), !.
-    gettext(S, T) :-
-        string(S),
-        ::text_adjust(S, T), !.
+        atom_string(A, S),!.
+    gettext(S, S) :-
+        string(S), !.
     gettext([X|T], S) :- !,
         gettext(X, XS),
+        (T = [_|_] -> ::text_adjust(XS, AXS); AXS = XS ),
         gettext(T, TS),
-        string_concat(XS, TS, S).
+        string_concat(AXS, TS, S).
 
     :- public(lstrip/3).
     :- info(lstrip/3, [

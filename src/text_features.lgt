@@ -44,7 +44,9 @@
     update_attrs(_).
 
     starts_field(N) :-   % Цели: ... Задачи: ...
-        ::element(N, P, T, A, S), !,
+        ::element(N, P, T, A, S),
+        \+ option(descr(_), A, _),
+        !,
         ::gettext(S, Text),
         re_matchsub("^\\s*?([А-Я][а-яА-Я]{2,})\\s*(:|\\))", Text, Dict, []),
         % TODO задачи: цели: .... from a user set of fields
@@ -54,11 +56,14 @@
         ItemName \= "",
         ::replace(element(N, P, T, A, S),
                   element(N, P, T,
-                          [descr=ItemName, dict=Dict | A], S)),
+                          % [descr=ItemName, dict=Dict | A], S)),  % For debugging
+                          [descr=ItemName | A], S)),
         !.
 
     starts_with_numbering(N) :-
-        ::element(N, P, T, A, S), !,
+        ::element(N, P, T, A, S),
+        \+ option(item(_), A),
+        !,
         ::gettext(S, Text),
         re_matchsub("^\\s*?(разд?е?л?|тема?)?\\.?\\s*((\\d{1,3}\\.?)+(\\.|:|\\)|\s)|[а-кА-К]\\))"/i, Text, Dict, []),
         % format("RE: ~w\n~w\n", [Dict, Text]),
@@ -70,12 +75,15 @@
         % format("FRM2:~w ~w\n",[Item, CItem]),
         ::replace(element(N, P, T, A, S),
                   element(N, P, T,
-                          [item=CItem, itemName=ItemName, dict=Dict | A],
+                          % [item=CItem, itemName=ItemName, dict=Dict | A],  % For debugging
+                          [item=CItem, itemName=ItemName | A],
                           S)),
         !.
 
     starts_with_ding(N) :-
-        ::element(N, P, T, A, S), !,
+        ::element(N, P, T, A, S),
+        \+ option(ding(_), A),
+        !,
         ::gettext(S, Text),
         % format("\nDIN: ~w < ~w\n", [S,Text]),
         ::lstrip(Text, TS, " "),
@@ -85,7 +93,9 @@
         !.
 
     starts_with_indent(N) :-
-        ::element(N, P, T, A, S), !,
+        ::element(N, P, T, A, S),
+        \+ option(parindent(_), A),
+        !,
         option(left(L), A),
         ::element(P, _, _, AP, _),
         option(textleft(LP), AP),
@@ -95,7 +105,9 @@
         !.
 
     paragraph_end(N) :-
-        ::element(N, P, T, A, S), !,
+        ::element(N, P, T, A, S),
+        \+ option(parend(_), A),
+        !,
         option(width(W), A),
         ::deviation(paragraph, [_, RD]),
         W < RD,

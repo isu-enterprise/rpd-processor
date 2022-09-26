@@ -13,6 +13,7 @@
     % load the project source files
     logtalk_load([
         'src/xml_loader_1',
+        'src/htmlize',
         'src/as_db_1',
         'src/fonts',
         'src/degraded',
