@@ -48,6 +48,7 @@
        ::neighbor(A,B), !,
        A = element(N, _, Tag, _, _),
        ( lines_mergable(A,B) ->
+           % format("M:\n~w\n~w\n", [A, B]),
            merge(A,B), !,
            simple_lines_merge(N, End, Tag, Merged2),
            Merged is Merged2 + 1
@@ -131,7 +132,7 @@
        merge_bbox_ver(Attrs1, Attrs2, MergedAttrs),
        ::remove(E2),
        append_bodies(S1, S2, MS),
-       ::replace(E1,element(N1, Par, Tag, [joined=true | MergedAttrs], MS)),
+       ::replace(E1,element(N1, Par, Tag, [ljoined=true | MergedAttrs], MS)),
        !.
 
     merge(E1, E2) :-
@@ -143,7 +144,7 @@
        merge_bbox_page(Par1, Par2, Attrs1, Attrs2, MergedAttrs),  % TODO: Incorrect over pages
        ::remove(E2),
        append_bodies(S1, S2, MS),
-       ::replace(E1,element(N1, Par1, Tag, [joined=true | MergedAttrs], MS)),
+       ::replace(E1,element(N1, Par1, Tag, [ljoined=true | MergedAttrs], MS)),
        % TODO: Add neighboring for joined line of different pages!
 
        % format("\nSIM: ~w\n", [element(N1, Par, Tag, MergedAttrs, MS)]),
@@ -162,7 +163,7 @@
        merge_bbox_hor(AT11, AT21, MergedAttrs),
        ::remove(E2),
        append_bodies(E1, S2, MS),
-       ::replace(E1,element(N1, Par, Tag, [joined=true, font(F2) | MergedAttrs], MS)),
+       ::replace(E1,element(N1, Par, Tag, [wjoined=true, font(F2) | MergedAttrs], MS)),
        !.
 
     :- protected(lines_mergable/2).
@@ -183,19 +184,15 @@
          option(textleft(PTL), PAttrs),
          DR1 is abs(L2 - PTL),
          DR1 =< LeftD,
-         par_start(element(N1, Par, Tag, Attrs1, S1))
-
-       ),
+         par_start(element(N1, Par, Tag, Attrs1, S1)) ),
        option(font(F1), Attrs1),
        option(font(F2), Attrs2),
        ::equal_font(F1, F2),
        !.
 
     lines_mergable(element(_N1, Par1, Tag, Attrs1, _S1), element(N2, Par2, Tag, Attrs2, S2)):-
-       Par1 \= Par2,
+       Par1 < Par2,
        \+ par_start(element(N2, Par2, Tag, Attrs2, S2)),
-       % debugger::trace,
-       option(left(_L1), Attrs1),
        option(left(L2), Attrs2),
        ::deviation(paragraph, [LeftD, _RightD]),
        ::element(Par2, _, page, PAttrs, _),

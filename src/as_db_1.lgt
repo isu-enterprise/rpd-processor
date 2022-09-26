@@ -116,6 +116,13 @@
 	]).
     :- dynamic(element/5).
 
+	:- protected(element/1).
+	:- info(element/1, [
+		comment is 'Represents an element of a PDF structure as term element/5.'
+	]).
+
+    element(element(N, P, Tag, A, S)) :-
+        element(N, P, Tag, A, S).
 
 	:- protected(neighborN/2).
     :- info(neighborN/2, [
@@ -265,6 +272,7 @@
     ]).
 
     remove(element(N, P, Tag, A, S)) :-
+        correct_range(N, Tag),
         retract(element(N, P, Tag, A, S)),
         (
            neighborN(N0,N),
@@ -283,6 +291,28 @@
            )
         )
         .
+    correct_range(N, Tag) :-
+        ::range(Tag, Start, End),
+        N > Start,
+        N < End,!.
+    correct_range(N, Tag) :-
+        ::range(Tag, N, N), !,
+        retract(range(Tag, N, N)).
+
+    correct_range(N, Tag) :-
+        ::range(Tag, N, End),
+        neighborN(N, N1), !,
+        retract(range(Tag, N, End)),
+        asserta(range(Tag, N1, End)).
+
+    correct_range(N, Tag) :-
+        ::range(Tag, Start, N),
+        neighborN(N0, N), !,
+        retract(range(Tag, Start, N)),
+        asserta(range(Tag, Start, N0)).
+
+    correct_range(N, Tag) :-
+        format("% WARNING: Ignoring range(~w, _, _) correction on ~w as no neighborNs\n", [Tag, N]).
 
     :- public(prepend/1).
     :- info(prepend/1, [

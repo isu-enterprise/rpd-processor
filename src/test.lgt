@@ -13,13 +13,6 @@
       comment is 'Defines file name for esting'
    ]).
 
-   % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/B1.O.30_Sistemy_iskusstvennogo_intellekta_4003.pdf.xml").
-   % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/simplest.xml").
-   % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/simple.xml").
-   % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/russian.xml").
-   % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/ex1.xml").
-   xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/ex2.xml").
-
    :- public(run/0).
    :- info(run/0, [
       comment is 'Issues and informative message'
@@ -64,5 +57,12 @@
       O::print(_), nl,nl,
       % O::print_as_text(_),
       true.
+
+   % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/B1.O.30_Sistemy_iskusstvennogo_intellekta_4003.pdf.xml").
+   % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/simplest.xml").
+   % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/simple.xml").
+   % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/russian.xml").
+   xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/ex1.xml").
+   % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/ex2.xml").
 
 :- end_object.

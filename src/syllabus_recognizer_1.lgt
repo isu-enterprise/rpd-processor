@@ -3,6 +3,7 @@
    imports([
             syllabus_fonts,
             text_attrib,
+            degraded,
             text_features,
             text_merge,
             text_syllabus_sections,
@@ -41,7 +42,7 @@
       msg("Processing attrs"),
       ::process_attrs, !,
       msg("Remove degraded artifacts"),
-%      ::process_removels, !,  % TODO
+      ::process_degraded, !,
       msg("Gathering features"),
       ::process_features, !,
       msg("Merging lines into paragraphs"),  % TODO: word-merge with dings of strange size

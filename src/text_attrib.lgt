@@ -72,9 +72,11 @@
 
     rule(textsize, element(Page, Par, page, PAttrs, PS)) :-
         findall(Lay,
-            (::element(_, Page, text, Attrs, S), \+ degraded(S, Page), layout(Attrs, Lay)),
+            ( ::element(_, Page, text, Attrs, S), \+ ::degraded_element(S, Page), layout(Attrs, Lay)),
             List),
-        bbox(List, lay(L,T,W,H)), !,
+        bbox(List, lay(L,T,R,B)), !,
+        W is R - L,
+        H is B - T,
         ::replace(element(Page, Par, page, PAttrs, PS), element(Page, Par, page,
             [textleft=L, texttop=T, textwidth=W, textheight=H | PAttrs],
             PS)).
@@ -85,19 +87,21 @@
 
 	rule(_,_).
 
-    layout(Attrs, lay(L,T,W,H)) :-
+    layout(Attrs, lay(L,T,R,B)) :-
         option(left(L), Attrs),
         option(top(T), Attrs),
         option(width(W), Attrs),
-        option(height(H), Attrs).
+        option(height(H), Attrs),
+        R is L + W,
+        B is T + H.
 
     bbox([Lay], Lay).
-    bbox([lay(L,T,W,H) | Tail], lay(L2,T2,W2,H2)):-
-        bbox(Tail, lay(L1,T1,W1,H1)),
+    bbox([lay(L,T,R,B) | Tail], lay(L2,T2,R2,B2)):-
+        bbox(Tail, lay(L1,T1,R1,B1)),
         L2 is min(L1,L),
         T2 is min(T1,T),
-        W2 is max(W1,W),
-        H2 is max(H1,H).
+        R2 is max(R1,R),
+        B2 is max(B1,B).
 
     % :- public(print0/0).
     % :- info(print0/0, [
@@ -107,17 +111,5 @@
     % print0 :-
     %        forall(::element(N, P, Na, A, S), format("~w-~w-~w ~w '~w'\n", [N, P, Na, A, S])).
 
-    empty(S) :-
-        ::gettext(S, T),
-        re_match("^\\s*$", T, []).
-
-    degraded(S, _) :-
-        empty(S), !.
-    degraded(S, P) :-
-        ::gettext(S, T),
-        re_matchsub("\\d+", T, Dict, []),
-        get_dict(0, Dict, NS),
-        number_string(N, NS),
-        P = N.
 
 :- end_category.
