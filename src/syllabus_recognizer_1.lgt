@@ -27,7 +27,7 @@
    ]).
 
    deviation(attributes, [10, 50]).
-   deviation(paragraph, [3, 10]).
+   deviation(paragraph, [10, 10]).
    deviation(parindent, [28]).  % 1 cm = 28 pt
    deviation(itemtextminlength, [10]). % The length of a "minimal item text" in characters.
 

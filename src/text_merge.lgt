@@ -74,6 +74,7 @@
        N < End,
        ::element(N, P, Tag, Attrs, S), !,
        A = element(N, P, Tag, Attrs, S),
+       % (N = 240 -> debugger::trace; true),
        words_merge_next(N, End, A, Merged).
     simple_words_merge(_, _, _, 0).
 
