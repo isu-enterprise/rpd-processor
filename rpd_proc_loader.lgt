@@ -20,6 +20,7 @@
         'src/text_attrib',
         'src/text_features',
         'src/text_merge',
+        'src/syllabus_merge',
         'src/syllabus_page_one',
         'src/text_sections',
         'src/text_syllabus_sections',   % configuration

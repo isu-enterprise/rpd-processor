@@ -5,7 +5,8 @@
             text_attrib,
             degraded,
             text_features,
-            text_merge,
+            % text_merge,
+            syllabus_merge,
             text_syllabus_sections,
             syllabus_page_one,
             text_syllabus_fields
@@ -27,7 +28,7 @@
    ]).
 
    deviation(attributes, [10, 50]).
-   deviation(paragraph, [10, 10]).
+   deviation(paragraph, [50, 10]).
    deviation(parindent, [28]).  % 1 cm = 28 pt
    deviation(itemtextminlength, [10]). % The length of a "minimal item text" in characters.
 
@@ -58,6 +59,7 @@
 
    msg(S) :-
       format("% ~w\n", [S]).
+
 
 
 :- end_object.
