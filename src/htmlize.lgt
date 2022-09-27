@@ -11,6 +11,8 @@
 	:- use_module(library(sgml_write), [html_write/3]).
     :- use_module(library(option), [select_option/3, select_option/4,
                                     option/3, option/2]).
+    :- use_module(library(pcre), [re_match/2, re_match/3,
+                                  re_matchsub/4, re_split/4]).
 
     :- public(htmlize/1).
     % :- mode(htmlize, Solutions).
@@ -165,8 +167,13 @@
     refine_nodes(_, [], []) :- !.
     refine_nodes(_, S, S) :-
         aors(S), !.
-    refine_nodes(Tag, element(Tag, Attrs, Nodes), element(span,Attrs, RNodes)) :- !,
+    refine_nodes(Tag, element(Tag, Attrs, Nodes), element(span, Attrs, RNodes)) :- !,
         refine_nodes(Tag, Nodes, RNodes).
+    refine_nodes(li, element(p, Attrs, Nodes), element(span, Attrs, RNodes)) :- !,
+        refine_nodes(li, Nodes, RNodes).
+    refine_nodes(H, element(_, Attrs, Nodes), element(span, Attrs, RNodes)) :-
+        re_match("^[hH][1-9]$", H, []), !,
+        refine_nodes(H, Nodes, RNodes).
     refine_nodes(Tag, element(Tag1, Attrs, Nodes), element(Tag1,Attrs, RNodes)) :- !,
         Tag \= Tag1,
         refine_nodes(Tag1, Nodes, RNodes).
