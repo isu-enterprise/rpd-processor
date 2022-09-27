@@ -41,7 +41,7 @@
         % ( N=690 -> debugger::trace; true),
         number_section0(No, Def, LText),
         ::replace(element(N, P, T, A, S),
-            element(N, P, T, [ section=Def | A ], S)).
+            element(N, P, T, [ section=Def, property="dc:title" | A ], S)).
 
     num_sec(_).
 
@@ -90,7 +90,7 @@
         % format("UNUM2: ~w\n", [LText]),
         % check_parent(N, Parent),          % Somewhere up there is a parent
         ::replace(element(N, P, T, A, S),
-            element(N, P, T, [ section=Sec | A ], S)).
+            element(N, P, T, [ section=Sec, property="dc:title" | A ], S)).
 
     unum_sec(_).
 

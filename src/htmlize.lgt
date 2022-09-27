@@ -14,76 +14,74 @@
     :- use_module(library(pcre), [re_match/2, re_match/3,
                                   re_matchsub/4, re_split/4]).
 
-    :- public(htmlize/1).
+    :- public(htmlize/2).
     % :- mode(htmlize, Solutions).
-    :- info(htmlize/1, [
-        comment is 'Convert context to html.'
+    :- info(htmlize/2, [
+        comment is 'Convert context to html and denote it as Document IRI.'
     ]).
 
-    htmlize(FileName) :-
+    htmlize(FileName, Document) :-
         string(FileName),
-        htmlize(HTML),
+        htmlize(HTML, Document),
         open(FileName, write, Stream, []),
-        % write(HTML), nl,
         html_write(Stream, HTML, []),
         close(Stream).
-    htmlize(HTML) :-
+    htmlize(HTML, Document) :-
         var(HTML),
         ::range(text, Start, End),
-        % debugger::trace,
-        htmlize(Start, End, Content),
+        BE = element(body, [property='oa:hasTarget', resource=ContentId, typeof='foaf:Content'], [] ),
+        htmlize0(Start, End, Content, BE, BO),
+        BO = element(body, BAttrs, _ ),
         flatten(Content, Body),
-        % write(Body),
-        HTML = element(html, [], [
-            element(body, [], Body )
+        format(atom(ContentId), "~w-content", [Document]),
+        HTML = element(html, [resource=Document, typeof='foaf:Document'], [
+            element(body, BAttrs, Body)
         ]).
 
-    htmlize(N, End, [RH | Prev]) :-
+    htmlize0(N, End, [RH | Rest], C, C) :-
         N =< End,
-        % (N=1030 -> debugger::trace ; true ),
         E = element(N, _, text, _, _),
         ::element(E), !,
-        htmlize(E, H),
+        htmlize0(E, H),
         refine_node(H,RH),
-        ( ::neighborN(N, Q) -> htmlize(Q, End, Prev) ;
-          Prev = [] ).
+        ( ::neighborN(N, Q) -> htmlize0(Q, End, Rest, C, _) ;
+          Rest = [] ).
 
-    htmlize([], []) :- !.
-    htmlize(S, T) :-
+    htmlize0([], []) :- !.
+    htmlize0(S, T) :-
         string(S), !,
         ::text_adjust(S, T), !.
-    htmlize(A, T) :-
+    htmlize0(A, T) :-
         atom(A),
         atom_string(A, S), !,
         ::text_adjust(S, T), !.
-    htmlize([X, Y|T], HT) :-
+    htmlize0([X, Y|T], HT) :-
         aors(X),
         aors(Y), !,
-        htmlize(X, HX),
-        htmlize(Y, HY),
+        htmlize0(X, HX),
+        htmlize0(Y, HY),
         string_concat(HX, HY, H),
-        htmlize([H|T], HT).
+        htmlize0([H|T], HT).
     % Here are special cases.
-    htmlize(element(_, _, text, Attrs, S), H) :-
+    htmlize0(element(_, _, text, Attrs, S), H) :-
         aors(S), !,
-        htmlize(element(_, _, text, Attrs, [S]), H).
-    htmlize(element(_, _, text, Attrs, S), element(Tag, FAttrs, L)) :- !,
+        htmlize0(element(_, _, text, Attrs, [S]), H).
+    htmlize0(element(_, _, text, Attrs, S), element(Tag, FAttrs, L)) :- !,
         option_tag(Attrs, Tag, RAttrs), !,
         convert_attrs(RAttrs, FAttrs),
-        htmlize(S, L).
-    htmlize([X|T], [HX | HT]) :-
-        htmlize(X, HX),
-        htmlize(T, HT).
+        htmlize0(S, L).
+    htmlize0([X|T], [HX | HT]) :-
+        htmlize0(X, HX),
+        htmlize0(T, HT).
 
     convert_attrs([], []).
     convert_attrs([A=B | T], [A=B1 | CT]) :-
-        html_attr(A), !,
+        ::allowed_attr(A), !,
         textify(B, B1),
         convert_attrs(T, CT).
     convert_attrs([F | T], [A=B1|CT]) :-
         F =.. [A,B],
-        html_attr(A),
-        !,
+        ::allowed_attr(A), !,
         textify(B, B1),
         convert_attrs(T, CT).
     convert_attrs([_|T], CT) :-
@@ -143,14 +141,32 @@
         format("% ERROR: No section info for section '~w'\n", [Id]),
         fail.
 
+    :- protected(allowed_attr/1).
+    :- info(allowed_attr/1, [
+        comment is 'Is this atter OK to use in HTML for any purpose?'
+    ]).
+
+    allowed_attr(X) :-
+        html_attr(X).
+    allowed_attr(X) :-
+        rdfa_attr(X).
+
     :- protected(html_attr/1).
-    % :- mode(html_attr, Solutions).
     :- info(html_attr/1, [
         comment is 'Is this atter OK to use in HTML for any purpose?'
     ]).
 
     html_attr(X) :-
         member(X, [href, value, name, id, class, style]).
+
+    :- protected(rdfa_attr/1).
+    :- info(rdfa_attr/1, [
+        comment is 'Defines a set of RDFa attributes allowed in HTML'
+    ]).
+
+    rdfa_attr(X) :-
+        member(X, [resource, about, property, vocab,
+                   typeof, refix, datatype, rel, rev]).
 
     :- protected(refine_node/2).
     % :- mode(refine_node, Solutions).

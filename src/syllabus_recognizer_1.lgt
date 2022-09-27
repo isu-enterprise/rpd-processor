@@ -1,4 +1,4 @@
-:- object(syllabus_recognizer(_XML_, _HTML_File_Name_),
+:- object(syllabus_recognizer(_XML_, _HTML_File_Name_, _Document_IRI_),
           extends(as_db(_XML_)),
           imports([syllabus_fonts,
                    text_attrib,
@@ -59,7 +59,7 @@
       msg("Findig fields"),
       ::process_syllabus_fields, !,
       msg("Write HTML of the result"),
-      ::htmlize(_HTML_File_Name_), !,
+      ::htmlize(_HTML_File_Name_, _Document_IRI_), !,
       msg("Finished"),
       true.
    msg(S) :-

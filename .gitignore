@@ -1,2 +1,5 @@
 /.lgt_tmp/*
+/src/.lgt_tmp/*
 _*.txt
+\#*
+/data

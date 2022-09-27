@@ -52,7 +52,7 @@
       xml_file_name(Name),
       html_file_name(HTMLFN),
       XML = xml_loader(Name),
-      O = syllabus_recognizer(XML, HTMLFN),
+      O = syllabus_recognizer(XML, HTMLFN, 'http://irnok.net/syllabus/database/syllabus-1'),
       O::convert,
       O::process,
       O::print(_), nl,nl,
