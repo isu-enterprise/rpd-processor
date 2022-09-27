@@ -7,6 +7,7 @@
         comment is 'Description'
     ]).
 
+	:- use_module(lists, [member/2]).
 	:- use_module(library(sgml_write), [html_write/3]).
     :- use_module(library(option), [select_option/3, select_option/4,
                                     option/3, option/2]).
@@ -33,12 +34,13 @@
             element(body, [], Body )
         ]).
 
-    htmlize(N, End, [H | Prev]) :-
+    htmlize(N, End, [RH | Prev]) :-
         N =< End,
         % (N=1030 -> debugger::trace ; true ),
         E = element(N, _, text, _, _),
         ::element(E), !,
         htmlize(E, H),
+        refine_node(H,RH),
         ( ::neighborN(N, Q) -> htmlize(Q, End, Prev) ;
           Prev = [] ).
 
@@ -62,9 +64,9 @@
         aors(S), !,
         htmlize(element(_, _, text, Attrs, [S]), H).
 %    htmlize(element(_, _, text, Attrs, S), element(span, [], L)) :- !,
-    htmlize(element(_, _, text, Attrs, S), element(Tag, RAttrs, L)) :- !,
-        convert_attrs(Attrs, FAttrs),
-        option_tag(FAttrs, Tag, RAttrs), !,
+    htmlize(element(_, _, text, Attrs, S), element(Tag, FAttrs, L)) :- !,
+        option_tag(Attrs, Tag, RAttrs), !,
+        convert_attrs(RAttrs, FAttrs),
         htmlize(S, L).
 
     htmlize([X|T], [HX | HT]) :-
@@ -72,12 +74,17 @@
         htmlize(T, HT).
 
     convert_attrs([], []).
-    convert_attrs([A=B | T], [A=B1 | CT]) :-!,
+    convert_attrs([A=B | T], [A=B1 | CT]) :-
+        html_attr(A), !,
         textify(B, B1),
         convert_attrs(T, CT).
     convert_attrs([F | T], [A=B1|CT]) :-
-        F =.. [A,B], !,
+        F =.. [A,B],
+        html_attr(A),
+        !,
         textify(B, B1),
+        convert_attrs(T, CT).
+    convert_attrs([_|T], CT) :-
         convert_attrs(T, CT).
 
     textify(B, B) :- aors(B), !.
@@ -93,5 +100,37 @@
         F =.. [A, true],
         select_option(F, Attrs, R), !.
     option_tag(A, p, A).
+
+    :- protected(html_attr/1).
+    % :- mode(html_attr, Solutions).
+    :- info(html_attr/1, [
+        comment is 'Is this atter OK to use in HTML for any purpose?'
+    ]).
+
+    html_attr(X) :-
+        member(X, [href, value, name, id, class, style]).
+
+    :- protected(refine_node/2).
+    % :- mode(refine_node, Solutions).
+    :- info(refine_node/2, [
+        comment is 'Refines HTML node to be simple'
+    ]).
+
+    refine_node(element(Tag, Attrs, Nodes),
+                element(Tag, Attrs, NNodes)) :-
+        refine_nodes(Tag, Nodes, NNodes).
+
+    refine_nodes(_, [], []) :- !.
+    refine_nodes(_, S, S) :-
+        aors(S), !.
+    refine_nodes(Tag, element(Tag, Attrs, Nodes), element(span,Attrs, RNodes)) :- !,
+        refine_nodes(Tag, Nodes, RNodes).
+    refine_nodes(Tag, element(Tag1, Attrs, Nodes), element(Tag1,Attrs, RNodes)) :- !,
+        Tag \= Tag1,
+        refine_nodes(Tag1, Nodes, RNodes).
+    refine_nodes(Tag, [X|T], [RX|RT]) :-
+        refine_nodes(Tag, X, RX),
+        refine_nodes(Tag, T, RT).
+
 
 :- end_category.

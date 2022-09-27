@@ -63,9 +63,9 @@
    % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/simplest.xml").
    % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/simple.xml").
    % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/russian.xml").
-   % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/ex1.xml").
+   xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/ex1.xml").
    % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/ex2.xml").
-   xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/ex3.xml").
+   % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/ex3.xml").
 
    html_file_name("/home/eugeneai/projects/code/rpd-processor/data/result.html").
 
