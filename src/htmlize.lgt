@@ -65,12 +65,10 @@
     htmlize(element(_, _, text, Attrs, S), H) :-
         aors(S), !,
         htmlize(element(_, _, text, Attrs, [S]), H).
-%    htmlize(element(_, _, text, Attrs, S), element(span, [], L)) :- !,
     htmlize(element(_, _, text, Attrs, S), element(Tag, FAttrs, L)) :- !,
         option_tag(Attrs, Tag, RAttrs), !,
         convert_attrs(RAttrs, FAttrs),
         htmlize(S, L).
-
     htmlize([X|T], [HX | HT]) :-
         htmlize(X, HX),
         htmlize(T, HT).
@@ -101,7 +99,42 @@
         ::text_name(Tag, A),
         F =.. [A, true],
         select_option(F, Attrs, R), !.
+    option_tag(Attrs, Tag, R) :-
+        ::attr_tag(_Tag1, F, V),
+        select_option(F, Attrs, R), !,
+        % (_Tag1 = li -> debugger::trace; true),
+        ::attr_tag(Tag, F, V).
+
     option_tag(A, p, A).
+
+    :- protected(attr_tag/3).
+    % :- mode(attr_tag, Solutions).
+    :- info(attr_tag/3, [
+        comment is 'Selects a tag for HTML representation based on Attrs content'
+    ]).
+
+    attr_tag(h, section(Id), Id) :-
+        var(Id).
+    attr_tag(li, item(V), V).
+    attr_tag(li, ding(V), V).
+    attr_tag(HLevel, section(Id), Id) :-
+        nonvar(Id), var(HLevel), !,
+        calc_section_level(Id, Num),
+        format(atom(HLevel), "h~w", [Num]).
+
+    calc_section_level(nosection, 0) :-!, fail.
+    calc_section_level(none, 0) :- !.
+    calc_section_level(Id, N) :-
+        ::number_section(_, Id, Parent, _), !,
+        calc_section_level(Parent, M),
+        N is M + 1.
+    calc_section_level(Id, N) :-
+        ::unnumbered_section(Id, Parent, _), !,
+        calc_section_level(Parent, M),
+        N is M + 1.
+    calc_section_level(Id, _) :-
+        format("% ERROR: No section info for section '~w'\n", [Id]),
+        fail.
 
     :- protected(html_attr/1).
     % :- mode(html_attr, Solutions).

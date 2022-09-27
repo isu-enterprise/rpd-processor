@@ -40,8 +40,8 @@
     number_section([6,1], equipment, tech_provision, [учебн, лабораторн, оборудован]).
     number_section([6,2], software, tech_provision, [программн, обеспечен]).
     number_section(7, control_matter, none, [оценочн, текущ, контрол, аттестац]).
-    number_section([7,1], current_control, control, [оценочн, текущ, контрол]).
-    number_section([7,2], intermediate_control, control, [оценочн, промежуточн, аттестац]).
+    number_section([7,1], current_control, control_matter, [оценочн, текущ, контрол]).
+    number_section([7,2], intermediate_control, control_matter, [оценочн, промежуточн, аттестац]).
 
     :- protected(unnumbered_section/3).
     :- info(unnumbered_section/3, [
@@ -52,7 +52,7 @@
     unnumbered_section(current_control_examples, current_control, [пример, оценочн, средств, текущ, контрол]).
     unnumbered_section(intermediate_control_questions, intermediate_control, [список, вопрос, промежуточн, аттестац]).
     unnumbered_section(intermediate_control_examples, intermediate_control, [пример, оценочн, средств, промежуточн, аттестац]).
-    unnumbered_section(author, none, [разработч, ":"]).
+    unnumbered_section(author, nosection, [разработч, ":"]).
 
     :- protected(section_title/2).
     :- info(section_title/2, [
