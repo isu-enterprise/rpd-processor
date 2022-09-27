@@ -7,7 +7,7 @@
         comment is 'Description'
     ]).
 
-	:- use_module(lists, [member/2, flatten/2]).
+	:- use_module(lists, [member/2, flatten/2, append/3]).
 	:- use_module(library(sgml_write), [html_write/3]).
     :- use_module(library(option), [select_option/3, select_option/4,
                                     option/3, option/2]).
@@ -102,7 +102,6 @@
     option_tag(Attrs, Tag, R) :-
         ::attr_tag(_Tag1, F, V),
         select_option(F, Attrs, R), !,
-        % (_Tag1 = li -> debugger::trace; true),
         ::attr_tag(Tag, F, V).
 
     option_tag(A, p, A).
@@ -152,10 +151,10 @@
     ]).
 
     refine_node(element(Tag, Attrs, Nodes),
-                element(Tag, Attrs, N3)) :-
+                element(Tag, Attrs, N4)) :-
         refine_nodes(Tag, Nodes, NNodes),
-        % N3 = NNodes.
-        eliminate_span(NNodes, N3).
+        eliminate_span(NNodes, N3),
+        remove_duplicate_nodes(N3, N4).
 
     refine_nodes(_, [], []) :- !.
     refine_nodes(_, S, S) :-
@@ -181,5 +180,24 @@
         eliminate_span(T, ET),
         flatten([EX| ET], R).
     eliminate_span(X,X).
+
+    remove_duplicate_nodes([], []) :- !.
+    remove_duplicate_nodes([X, Y | T], R) :-
+        X = element(Tag, Attrs1, L1),
+        Y = element(Tag, Attrs2, L2),
+        attrs_join(Attrs1, Attrs2, Attrs), !,
+        append(L1, L2, L),
+        remove_duplicate_nodes([element(Tag, Attrs, L)|T], R).
+    remove_duplicate_nodes([X | T], [X | R]) :-
+        remove_duplicate_nodes(T, R).
+
+    :- protected(attrs_join/3).
+    % :- mode(attrs_join, Solutions).
+    :- info(attrs_join/3, [
+        comment is 'Try to join attributes non-crontradictory'
+    ]).
+
+    attrs_join(A1, A2, A) :-
+        append(A1, A2, A).
 
 :- end_category.
