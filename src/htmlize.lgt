@@ -101,7 +101,8 @@
         select_option(F, Attrs, R), !.
     option_tag(Attrs, Tag, R) :-
         ::attr_tag(_Tag1, F, V),
-        select_option(F, Attrs, R), !,
+        select_option(F, Attrs, R),
+        V \= "", !,
         ::attr_tag(Tag, F, V).
 
     option_tag(A, p, A).
@@ -114,12 +115,17 @@
 
     attr_tag(h, section(Id), Id) :-
         var(Id).
+    attr_tag(p, itemName(V), V) :-
+        var(V).
     attr_tag(li, item(V), V).
     attr_tag(li, ding(V), V).
     attr_tag(HLevel, section(Id), Id) :-
         nonvar(Id), var(HLevel), !,
         calc_section_level(Id, Num),
         format(atom(HLevel), "h~w", [Num]).
+    attr_tag(p, itemName(V), V) :-
+        nonvar(V), !,
+        V \= "".
 
     calc_section_level(nosection, 0) :-!, fail.
     calc_section_level(none, 0) :- !.
