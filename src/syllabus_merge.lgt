@@ -18,14 +18,22 @@
         comment is 'Rules for assesing wether two lines can merge'
     ]).
 
-    lines_mergable(element(_, _, text, _, S1),
-                   element(_, _, text, _, _)) :-
-        ::gettext(S1, T1),
-        string_lower(T1, LT1),
-        ::unterminated_sentence(LT1).
-
     lines_mergable(A, B) :-
-        ^^lines_mergable(A, B).
+        ^^lines_mergable(A, B), !.
+
+    lines_mergable(element(_, _, text, _, S1),
+                   element(N2, P2, text, A2, S2)) :-
+        \+ ::par_start(element(N2, P2, text, A2, S2)),
+        ::gettext(S1, T1),
+%        string_lower(T1, LT1),
+        ::unterminated_sentence(T1), !.
+
+    lines_mergable(element(_, _, text, _, _),
+                   element(N2, P2, text, A2, S2)) :-
+        \+ ::par_start(element(N2, P2, text, A2, S2)),
+        ::gettext(S2, T2),
+%        string_lower(T2, LT2),
+        ::cannot_start_sentence(T2), !.
 
     :- protected(unterminated_sentence/1).
     % :- mode(unterminated_sentence, Solutions).
@@ -34,11 +42,22 @@
     ]).
 
     unterminated_sentence(T) :-
-        re_match("[-/+=–]\s*$", T, []).
+        re_match("[-/+=–—]\s*$", T, []).
     unterminated_sentence(T) :-
-        re_match("url\s*:\s*$", T, []).
+        string_lower(T, L),
+        re_match("url\s*:\s*$", L, []).
     unterminated_sentence(T) :-
         re_match("\s+[а-я]{1,3}\s+$", T, []).
+
+    :- protected(cannot_start_sentence/1).
+    % :- mode(cannot_start_sentence, Solutions).
+    :- info(cannot_start_sentence/1, [
+       comment is 'This sequence cannot start a sentence'
+    ]).
+
+    cannot_start_sentence(T) :-
+        re_matchsub("^\s*[а-я]+\s*([):]?)", T, Dict, []),
+        get_dict(1, Dict, ""), !.
 
     :- protected(text_adjust/2).
     % :- mode(text_adjust, Solutions).

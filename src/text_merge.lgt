@@ -1,21 +1,21 @@
 :- category(text_merge).
 
-   :- info([
-      version is 1:0:0,
-      author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
-      date is 2022-09-17,
-      comment is 'Implements text merge procedures over line sets'
-   ]).
+    :- info([
+        version is 1:0:0,
+        author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
+        date is 2022-09-17,
+        comment is 'Implements text merge procedures over line sets'
+    ]).
 
-   :- use_module(lists, [member/2, append/3]).
-   :- use_module(library(option), [option/2, option/3,
+    :- use_module(lists, [member/2, append/3]).
+    :- use_module(library(option), [option/2, option/3,
                                    select_option/3, select_option/4,
                                    merge_options/3]).
 
-   :- private(process_merge/0).
-   :- info(process_merge/0, [
-       comment is 'Implement merge rules rules'
-   ]).
+    :- protected(process_merge/0).
+    :- info(process_merge/0, [
+        comment is 'Implement merge rules rules'
+    ]).
 
 
     process_merge :-
@@ -24,6 +24,17 @@
         simple_lines_merge(Start, End, text),
         page_lines_merge(page),
         true.
+
+    :- protected(process_runs_merge/0).
+    % :- mode(process_runs_merge, Solutions).
+    :- info(process_runs_merge/0, [
+        comment is 'Process merge of runs in a line'
+    ]).
+
+    process_runs_merge :-
+        ::range(text,  Start, End),
+        simple_words_merge(Start, End, text).
+
 
     :- protected(simple_lines_merge/3).
     :- info(simple_lines_merge/3, [
@@ -227,92 +238,98 @@
        B2 = T2 + H2,
        ( (T1 >= B2 ; T2 >= B1) -> fail; true ).
 
-   par_start(element(_, _, _, A, _)) :-
-       par_option(O),
-       option(O, A),
-       !.
+    :- protected(par_start/1).
+    % :- mode(par_start, Solutions).
+    :- info(par_start/1, [
+        comment is 'Check if line is a paragraph start.'
+    ]).
 
-   par_option(ident(_)).
-   par_option(item(_)).
-   par_option(ding(_)).
-   par_option(parindent(_)).
-   par_option(descr(_)).
+    par_start(element(_, _, _, A, _)) :-
+        par_option(O),
+        option(O, A),
+        !.
 
-   merge_bbox_ver(A1, A2, [left(L), top(To1), width(W), height(H) | T]) :-
-       select_option(left(L1), A1, A11),
-       select_option(left(L2), A2, A21),
-       L is min(L1, L2),
-       select_option(width(W1), A11, A12),
-       select_option(width(W2), A21, A22),
-       R1 is L1 + W1,
-       R2 is L2 + W2,
-       R is max(R1, R2),
-       W is R - L,
-       select_option(height(_), A12, A13),
-       select_option(height(H2), A22, A23),
-       select_option(top(To1), A13, T1),
-       select_option(top(To2), A23, T2),
-       H is To2 + H2 - To1,
-       merge_options(T1, T2, T).
+    par_option(ident(_)).
+    par_option(item(_)).
+    par_option(ding(_)).
+    par_option(parindent(_)).
+    par_option(descr(_)).
 
-   merge_bbox_page(P1, P2, A1, A2, [left(L), top(To1), width(W), height(H) | T]) :-
-       ::element(P1, _, page, PAttrs1, _),
-       ::element(P2, _, page, PAttrs2, _),
-       select_option(left(L1), A1, A11),
-       select_option(left(L2), A2, A21),
-       option(textleft(TL1), PAttrs1),
-       option(textleft(TL2), PAttrs2),
-       DTL is TL1 - TL2,
-       L is min(L1, L2 + DTL),
-       select_option(width(W1), A11, A12),
-       select_option(width(W2), A21, A22),
-       R1 is L1 + W1,
-       R2 is L2 + DTL + W2,
-       R is max(R1, R2),
-       W is R - L,
-       select_option(height(H1), A12, A13),
-       select_option(height(H2), A22, A23),
-       select_option(top(To1), A13, T1),
-       select_option(top(_To2), A23, T2),
-       H is H1 + H2,  % Me'sa  too lazy.
-       merge_options(T1, T2, T).
+    merge_bbox_ver(A1, A2, [left(L), top(To1), width(W), height(H) | T]) :-
+        select_option(left(L1), A1, A11),
+        select_option(left(L2), A2, A21),
+        L is min(L1, L2),
+        select_option(width(W1), A11, A12),
+        select_option(width(W2), A21, A22),
+        R1 is L1 + W1,
+        R2 is L2 + W2,
+        R is max(R1, R2),
+        W is R - L,
+        select_option(height(_), A12, A13),
+        select_option(height(H2), A22, A23),
+        select_option(top(To1), A13, T1),
+        select_option(top(To2), A23, T2),
+        H is To2 + H2 - To1,
+        merge_options(T1, T2, T).
 
-   merge_bbox_hor(A1, A2, [left(L), top(To), width(W), height(H) | T]) :-
-       select_option(left(L1), A1, A11),
-       select_option(left(L2), A2, A21),
-       L is min(L1, L2),
-       select_option(width(W1), A11, A12),
-       select_option(width(W2), A21, A22),
-       R1 is L1 + W1,
-       R2 is L2 + W2,
-       R is max(R1, R2),
-       W is R - L,
-       select_option(height(H1), A12, A13),
-       select_option(height(H2), A22, A23),
-       H is max(H1, H2),
-       select_option(top(To1), A13, T1),
-       select_option(top(To2), A23, T2),
-       To is min(To1, To2),
-       merge_options(T1, T2, T).
+    merge_bbox_page(P1, P2, A1, A2, [left(L), top(To1), width(W), height(H) | T]) :-
+        ::element(P1, _, page, PAttrs1, _),
+        ::element(P2, _, page, PAttrs2, _),
+        select_option(left(L1), A1, A11),
+        select_option(left(L2), A2, A21),
+        option(textleft(TL1), PAttrs1),
+        option(textleft(TL2), PAttrs2),
+        DTL is TL1 - TL2,
+        L is min(L1, L2 + DTL),
+        select_option(width(W1), A11, A12),
+        select_option(width(W2), A21, A22),
+        R1 is L1 + W1,
+        R2 is L2 + DTL + W2,
+        R is max(R1, R2),
+        W is R - L,
+        select_option(height(H1), A12, A13),
+        select_option(height(H2), A22, A23),
+        select_option(top(To1), A13, T1),
+        select_option(top(_To2), A23, T2),
+        H is H1 + H2,  % Me'sa  too lazy.
+        merge_options(T1, T2, T).
 
-   append_bodies(element(N, P, Tag, A, S),
-                 S1,
-                 [element(N, P, Tag, A, S) | L1]) :-
-                    ( string(S1) -> L1 = [S1];
-                      L1 = S1
-                    ).
-   append_bodies("", S, S) :- string(S), !.
-   append_bodies(S, "", S) :- string(S), !.
-   append_bodies(S1, S2, [S1, S2]) :-
-      string(S1),
-      string(S2), !.
-   append_bodies(L1, S, L) :-
-      string(S), !,
-      append(L1, [S], L).
-   append_bodies(S, L2, [S | L2]) :-
-      string(S), !.
-   append_bodies(L1, L2, L3) :-
-      append(L1, L2, L3).
+    merge_bbox_hor(A1, A2, [left(L), top(To), width(W), height(H) | T]) :-
+        select_option(left(L1), A1, A11),
+        select_option(left(L2), A2, A21),
+        L is min(L1, L2),
+        select_option(width(W1), A11, A12),
+        select_option(width(W2), A21, A22),
+        R1 is L1 + W1,
+        R2 is L2 + W2,
+        R is max(R1, R2),
+        W is R - L,
+        select_option(height(H1), A12, A13),
+        select_option(height(H2), A22, A23),
+        H is max(H1, H2),
+        select_option(top(To1), A13, T1),
+        select_option(top(To2), A23, T2),
+        To is min(To1, To2),
+        merge_options(T1, T2, T).
+
+    append_bodies(element(N, P, Tag, A, S),
+                  S1,
+                  [element(N, P, Tag, A, S) | L1]) :-
+                     ( string(S1) -> L1 = [S1];
+                       L1 = S1
+                     ).
+    append_bodies("", S, S) :- string(S), !.
+    append_bodies(S, "", S) :- string(S), !.
+    append_bodies(S1, S2, [S1, S2]) :-
+       string(S1),
+       string(S2), !.
+    append_bodies(L1, S, L) :-
+       string(S), !,
+       append(L1, [S], L).
+    append_bodies(S, L2, [S | L2]) :-
+       string(S), !.
+    append_bodies(L1, L2, L3) :-
+       append(L1, L2, L3).
 
     :- protected(text_adjust/2).
     % :- mode(text_adjust, Solutions).

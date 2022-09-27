@@ -1,17 +1,15 @@
 :- object(syllabus_recognizer(_XML_, _HTML_File_Name_),
-   extends(as_db(_XML_)),
-   imports([
-            syllabus_fonts,
-            text_attrib,
-            degraded,
-            text_features,
-            % text_merge,
-            syllabus_merge,
-            text_syllabus_sections,
-            syllabus_page_one,
-            text_syllabus_fields,
-            htmlize
-            ])).
+          extends(as_db(_XML_)),
+          imports([syllabus_fonts,
+                   text_attrib,
+                   degraded,
+                   text_features,
+                   % text_merge,
+                   syllabus_merge,
+                   text_syllabus_sections,
+                   syllabus_page_one,
+                   text_syllabus_fields,
+                   htmlize])).
 
    :- info([
       version is 1:0:0,
@@ -30,14 +28,13 @@
 
    deviation(attributes, [10, 50]).
    deviation(paragraph, [50, 10]).
-   deviation(parindent, [28]).  % 1 cm = 28 pt
+   deviation(parindent, [28]).         % 1 cm = 28 pt
    deviation(itemtextminlength, [10]). % The length of a "minimal item text" in characters.
 
    :- public(process/0).
    :- info(process/0, [
        comment is 'Run all rules in an order'
    ]).
-
    process :-
       msg("Processing font definitions"),
       ::process_syllabus_fonts, !,
@@ -45,18 +42,16 @@
       ::process_attrs, !,
       msg("Remove degraded artifacts"),
       ::process_degraded, !,
+      msg("Merging runs in lines, Pass 0"),
+      ::process_runs_merge, !,
       msg("Gathering features"),
       ::process_features, !,
-      msg("Merging lines into paragraphs"),
+      msg("Merging runs and lines into paragraphs, Pass 1"),
       ::process_merge, !,
       msg("Gathering features, Pass 2"),
       ::process_features, !,
-      msg("Merging lines into paragraphs, Pass 2"),
+      msg("Merging runs and lines into paragraphs, Pass 2"),
       ::process_merge, !,
-      % msg("Gathering features, Pass 3"),
-      % ::process_features, !,
-      % msg("Merging lines into paragraphs, Pass 3"),
-      % ::process_merge, !,
       msg("Processing the titlepage"),
       ::process_first_page, !,
       msg("Findig sections"),
@@ -67,10 +62,7 @@
       ::htmlize(_HTML_File_Name_), !,
       msg("Finished"),
       true.
-
    msg(S) :-
       format("% ~w\n", [S]).
-
-
 
 :- end_object.

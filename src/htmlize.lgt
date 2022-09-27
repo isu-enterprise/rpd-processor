@@ -7,7 +7,7 @@
         comment is 'Description'
     ]).
 
-	:- use_module(lists, [member/2]).
+	:- use_module(lists, [member/2, flatten/2]).
 	:- use_module(library(sgml_write), [html_write/3]).
     :- use_module(library(option), [select_option/3, select_option/4,
                                     option/3, option/2]).
@@ -29,7 +29,9 @@
         var(HTML),
         ::range(text, Start, End),
         % debugger::trace,
-        htmlize(Start, End, Body),
+        htmlize(Start, End, Content),
+        flatten(Content, Body),
+        % write(Body),
         HTML = element(html, [], [
             element(body, [], Body )
         ]).
@@ -117,8 +119,10 @@
     ]).
 
     refine_node(element(Tag, Attrs, Nodes),
-                element(Tag, Attrs, NNodes)) :-
-        refine_nodes(Tag, Nodes, NNodes).
+                element(Tag, Attrs, N3)) :-
+        refine_nodes(Tag, Nodes, NNodes),
+        % N3 = NNodes.
+        eliminate_span(NNodes, N3).
 
     refine_nodes(_, [], []) :- !.
     refine_nodes(_, S, S) :-
@@ -132,5 +136,17 @@
         refine_nodes(Tag, X, RX),
         refine_nodes(Tag, T, RT).
 
+    eliminate_span([], []) :-!.
+    eliminate_span(element(span, _, L), FL) :- !,
+        eliminate_span(L, EL),
+        flatten(EL, FL).
+    eliminate_span(element(Tag, Attrs, L), element(Tag, Attrs, FL)) :- !,
+        eliminate_span(L, EL),
+        flatten(EL, FL).
+    eliminate_span([X|T], R) :- !,
+        eliminate_span(X, EX),
+        eliminate_span(T, ET),
+        flatten([EX| ET], R).
+    eliminate_span(X,X).
 
 :- end_category.
