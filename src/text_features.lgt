@@ -19,6 +19,7 @@
                                   re_matchsub/4, re_split/4]).
 
     process_features :-
+        % forall(::element(E), ::clear_features(E)),
         forall(::element(N, _, text, _, _), update_attrs(N)).
 
     update_attrs(N) :-
@@ -149,5 +150,47 @@
     ding_symbol("-").
     ding_symbol("—").
     ding_symbol("–").
+
+    :- protected(clear_features/1).
+    % :- mode(clear_features, Solutions).
+    :- info(clear_features/1, [
+        comment is 'Clear existing features in an element'
+    ]).
+
+    clear_features(element(N, P, T, A, S)) :-
+        clear_features(A, AC),
+        ::replace(element(N, P, T, A, S), element(N, P, T, AC, S)).
+
+    :- protected(clear_features/2).
+    % :- mode(clear_features, Solutions).
+    :- info(clear_features/2, [
+        comment is 'Clear features from a list of features'
+    ]).
+
+    clear_features([], []) :- !.
+    clear_features([X|T], R) :-
+        feature0(X, _), !,
+        clear_features(T, R).
+    clear_features([X|T], [X|R]) :-
+        clear_features(T, R).
+
+    feature0(A=B, F) :-
+        F =.. [A,B], !,
+        feature(F).
+    feature0(F, F) :-
+        feature(F).
+
+    :- protected(feature/1).
+    % :- mode(feature, Solutions).
+    :- info(feature/1, [
+        comment is 'Describe a feature of a run/line'
+    ]).
+
+    feature(descr(_)).
+    feature(item(_)).
+    feature(itemName(_)).
+    feature(ding(_)).
+    feature(parindent(_)).
+    feature(parend(_)).
 
 :- end_category.

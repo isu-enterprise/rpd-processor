@@ -20,7 +20,7 @@
 
     process_degraded :-
         forall(( ::element(E), ::degraded_within_page(E) ),
-               ::remove(E) ).
+               warning_and_remove(E) ).
 
     :- protected(degraded_within_page/1).
     % :- mode(degraded_within_page, Solutions).
@@ -45,7 +45,6 @@
         ::degraded_check(T, PN).
 
     :- protected(degraded_check/2).
-    % :- mode(degraded_check, Solutions).
     :- info(degraded_check/2, [
         comment is 'Check wether the text is degraded'
     ]).
@@ -53,13 +52,12 @@
     degraded_check(S, _) :-
         ::empty_check(S), !.
     degraded_check(T, P) :-
-        re_matchsub("\\d+", T, Dict, []),
-        get_dict(0, Dict, NS),
+        re_matchsub("^\s8(\\d+)\s*$", T, Dict, []),
+        get_dict(1, Dict, NS),
         number_string(N, NS),
         N = P, !.
 
     :- protected(empty_check/1).
-    % :- mode(empty_check, Solutions).
     :- info(empty_check/1, [
         comment is 'Whether the text is empty'
     ]).
@@ -94,5 +92,9 @@
         TB is TT + TH,
         B is T + H,
         B > TB, !.
+
+    warning_and_remove(E) :-
+        format("% INFO: removing degraded element ~n% ~w~n", [E]),
+        ::remove(E).
 
 :- end_category.

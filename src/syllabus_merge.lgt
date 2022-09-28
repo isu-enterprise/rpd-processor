@@ -22,17 +22,28 @@
         ^^lines_mergable(A, B), !.
 
     lines_mergable(element(_, _, text, _, S1),
+                   element(_, _, text, _, S2)) :-
+        ::gettext(S1, T1),
+        ::unterminated_sentence(T1),
+        ::gettext(S2, T2),
+        ::cannot_start_sentence(T2), !.
+
+    lines_mergable(element(_, _, text, A, _),
+                   element(_, _, text, _, S2)) :-
+        ::list_item(A),
+        ::gettext(S2, T2),
+        ::cannot_start_sentence(T2), !.
+
+    lines_mergable(element(_, _, text, _, S1),
                    element(N2, P2, text, A2, S2)) :-
         \+ ::par_start(element(N2, P2, text, A2, S2)),
         ::gettext(S1, T1),
-%        string_lower(T1, LT1),
         ::unterminated_sentence(T1), !.
 
     lines_mergable(element(_, _, text, _, _),
                    element(N2, P2, text, A2, S2)) :-
         \+ ::par_start(element(N2, P2, text, A2, S2)),
         ::gettext(S2, T2),
-%        string_lower(T2, LT2),
         ::cannot_start_sentence(T2), !.
 
     :- protected(unterminated_sentence/1).
@@ -70,5 +81,19 @@
 
     text_adjust(A, B) :-
         ^^text_adjust(A, B).
+
+    :- protected(list_item/1).
+    % :- mode(list_item, Solutions).
+    :- info(list_item/1, [
+        comment is 'Options contains eiter nonempty ding or item.'
+    ]).
+
+    list_item(Attrs) :-
+        option(ding(S), Attrs),
+        S\="".
+    list_item(Attrs) :-
+        option(item(I), Attrs),
+        I\="".
+
 
 :- end_category.

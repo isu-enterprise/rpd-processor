@@ -61,13 +61,15 @@
     % number_section(1, introduction, none, [введен]).
     % number_section([1,X], subsection(X), introduction, [основн, результат]).
 
-    :- protected(section_tite/2).
-    :- info(section_tite/2, [
+    :- protected(section_title/2).
+    :- info(section_title/2, [
         comment is 'Converts an atom defining section into its title'
     ]).
 
-    % section_label(introduction, 'Introduction to an article').
-    % section_label(subsection(X), X).
+    % section_title(introduction, 'Introduction to an article').
+    % section_title(subsection(X), X).
+
+    section_title(contents, "Содержание").
 
     :- protected(named_sections/0).
     :- info(named_sections/0, [
@@ -79,15 +81,12 @@
                unum_sec(element(N, P, T, A, S))).
 
     unum_sec(element(N, P, T, A, S)) :-
-        % format("UNUM0: ~w\n", [element(N, P, T, A, S)] ),
-        \+ ::section(element(N, P, T, A, S)),
+        \+ ::section(element(N, P, T, A, S), _),
         \+ option(item(_), A),
-        % ( N=690 -> debugger::trace; true),
         ::gettext(S, Text),
         string_lower(Text, LText),
         ::unnumbered_section(Sec, _Parent, Hints),
         ::check_hints(LText, Hints, _), !,
-        % format("UNUM2: ~w\n", [LText]),
         % check_parent(N, Parent),          % Somewhere up there is a parent
         ::replace(element(N, P, T, A, S),
             element(N, P, T, [ section=Sec, property="dc:title" | A ], S)).
@@ -112,27 +111,31 @@
         comment is 'Section definition without numbers'
     ]).
 
+    % unnumbered_section(contents, none, [содержание]).
+    % unnumbered_section(contents, none, [оглавление]).
+
     :- protected(associate_paragraphs/0).
     :- info(associate_paragraphs/0, [
         comment is 'Make references from paragraphs to their sections'
     ]).
 
     associate_paragraphs :-
-        ::range(Start, End),
+        ::range(text, Start, End),
         associate(Start, End, none).
 
-    :- public(section/1).
-    :- info(section/1, [
+    :- public(section/2).
+    :- info(section/2, [
         comment is 'Is this element a section?'
     ]).
 
-    section(element(_, _, text, A, _)) :-
-        option(section(_), A).
+    section(element(_, _, text, A, _), Id) :-
+        option(section(Id), A).
 
-    associate(N, End, Parent) :-  % Parent section
+    associate(N, End, _) :-  % Parent section
         N =< End,
         ::element(N, P, text, A, S),
-        ::section(element(N, P, text, A, S)), !,
+        ::section(element(N, P, text, A, S), Id), !,
+        find_parent_section(Id, Parent),
         ::replace(element(N, P, text, A, S),
                   element(N, sp(Parent,P), text, A, S)),  % sp = section, page
         ::next(N,N1),
@@ -141,7 +144,7 @@
     associate(N, End, Parent) :-  % Parent section
         N =< End,
         ::element(N, P, text, A, S),
-        \+ ::section(element(N,P,text,A,S)), !,
+        \+ ::section(element(N,P,text,A,S), _), !,
         ::replace(element(N, P, text, A, S),
                   element(N, sp(Parent,P), text, A, S)),
         ::next(N, N1),
@@ -158,8 +161,33 @@
         ::next(N, N1), !,
         associate(N1, E, P).
 
-    associate(_,_,_).
+    associate(N, End, _) :-
+        N > End.
 
+    find_parent_section(Id, none) :-
+        ::number_section(_, Id, none, _), !.
+    find_parent_section(Id, none) :-
+        ::unnumbered_section(Id, none, _), !.
+    find_parent_section(Id, N) :-
+        ::number_section(_, Id, Parent, _),
+        find_parent0(Parent, N).
+    find_parent_section(Id, N) :-
+        ::unnumbered_section(Id, Parent, _),
+        find_parent0(Parent, N).
+    find_parent_section(Id, none) :-
+        (::section_title(Id, Title) -> true;
+         Title = "< title not found >"),
+        format("% WARNING: Cannot find parent element for section '~w'~n%       ~w~n", [Id, Title]).
+    find_parent0(PId, N) :-
+        ::element(E),
+        E = element(_,_, text, _, _),
+        section(E, PId), !,
+        E = element(N, _, text, _, _).
+    find_parent0(PId, _) :-
+        (::section_title(PId, Title) -> true;
+         Title = "< title not found >"),
+        format("% WARNING: Cannot find element for section '~w'~n%       ~w~n", [PId, Title]),
+        fail.
 
 
 
