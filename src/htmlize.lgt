@@ -29,22 +29,21 @@
     htmlize(HTML, Document) :-
         var(HTML),
         ::range(text, Start, End),
-        BE = element(body, [property='oa:hasTarget', resource=ContentId, typeof='foaf:Content'], [] ),
-        htmlize0(Start, End, Content, BE, BO),
-        BO = element(body, BAttrs, _ ),
+        htmlize0(Start, End, Content),
         flatten(Content, Body),
         format(atom(ContentId), "~w-content", [Document]),
         HTML = element(html, [resource=Document, typeof='foaf:Document'], [
-            element(body, BAttrs, Body)
+            element(body, [property='oa:hasTarget', resource=ContentId, typeof='foaf:Content'], Body )
         ]).
 
-    htmlize0(N, End, [RH | Rest], C, C) :-
+    htmlize0(N, End, [RH | Rest]) :-
         N =< End,
         E = element(N, _, text, _, _),
         ::element(E), !,
         htmlize0(E, H),
+        % format("HTML: ~w -> ~w~n", [E, H]),
         refine_node(H,RH),
-        ( ::neighborN(N, Q) -> htmlize0(Q, End, Rest, C, _) ;
+        ( ::neighborN(N, Q) -> htmlize0(Q, End, Rest) ;
           Rest = [] ).
 
     htmlize0([], []) :- !.
@@ -66,7 +65,11 @@
     htmlize0(element(_, _, text, Attrs, S), H) :-
         aors(S), !,
         htmlize0(element(_, _, text, Attrs, [S]), H).
-    htmlize0(element(_, _, text, Attrs, S), element(Tag, FAttrs, L)) :- !,
+    htmlize0(element(_, _, text, Attrs, S), element(GTag, FAttrs, L)) :-
+        option(group(GTag), Attrs), !,
+        convert_attrs(Attrs, FAttrs),
+        htmlize0(S, L).
+    htmlize0(element(_, _, text, Attrs, S), element(Tag, FAttrs, L)) :-
         option_tag(Attrs, Tag, RAttrs), !,
         convert_attrs(RAttrs, FAttrs),
         htmlize0(S, L).
@@ -213,12 +216,15 @@
     remove_duplicate_nodes([], []) :- !.
     remove_duplicate_nodes([X, Y | T], R) :-
         X = element(Tag, Attrs1, L1),
+        allow_join(Tag),
         Y = element(Tag, Attrs2, L2),
         attrs_join(Attrs1, Attrs2, Attrs), !,
         append(L1, L2, L),
         remove_duplicate_nodes([element(Tag, Attrs, L)|T], R).
     remove_duplicate_nodes([X | T], [X | R]) :-
         remove_duplicate_nodes(T, R).
+
+    allow_join(X) :- member(X, [b, i, span]).
 
     :- protected(attrs_join/3).
     % :- mode(attrs_join, Solutions).

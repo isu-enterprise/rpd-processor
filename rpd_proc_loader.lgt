@@ -28,6 +28,7 @@
         'src/gather_items',
         'src/text_fields',
         'src/text_syllabus_fields',     % configuration
+        'src/grouping',
 
         'src/syllabus_recognizer_1',
 

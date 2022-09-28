@@ -10,6 +10,7 @@
                    gather_items,
                    syllabus_page_one,
                    text_syllabus_fields,
+                   grouping,
                    htmlize])).
 
    :- info([
@@ -63,6 +64,8 @@
       ::process_merge, !,
       msg("Findig fields"),
       ::process_syllabus_fields, !,
+      msg("Grouping items and sections"),
+      ::process_grouping, !,
       msg("Write HTML of the result"),
       ::htmlize(_HTML_File_Name_, _Document_IRI_), !,
       msg("Finished"),
