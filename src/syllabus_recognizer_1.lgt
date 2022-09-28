@@ -7,6 +7,7 @@
                    % text_merge,
                    syllabus_merge,
                    text_syllabus_sections,
+                   gather_items,
                    syllabus_page_one,
                    text_syllabus_fields,
                    htmlize])).
@@ -56,6 +57,10 @@
       ::process_first_page, !,
       msg("Findig sections"),
       ::process_syllabus_sections, !,
+      msg("Gathering item sets"),
+      ::process_item_gathering, !,
+      msg("Merging runs and lines into paragraphs, Pass 3"),
+      ::process_merge, !,
       msg("Findig fields"),
       ::process_syllabus_fields, !,
       msg("Write HTML of the result"),

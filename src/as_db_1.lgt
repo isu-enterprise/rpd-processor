@@ -130,6 +130,14 @@
     element(element(N, P, Tag, A, S)) :-
         element(N, P, Tag, A, S).
 
+	:- protected(element/2).
+	:- info(element/2, [
+		comment is 'Represents an element of a PDF structure with number N as element/5.'
+	]).
+
+    element(element(N, P, Tag, A, S), N) :-
+        element(N, P, Tag, A, S).
+
 	:- protected(neighborN/2).
     :- info(neighborN/2, [
 		comment is 'Dynamic prdicate defines that two element of the same kind are neighbors'

@@ -25,6 +25,7 @@
         'src/syllabus_page_one',
         'src/text_sections',
         'src/text_syllabus_sections',   % configuration
+        'src/gather_items',
         'src/text_fields',
         'src/text_syllabus_fields',     % configuration
 
