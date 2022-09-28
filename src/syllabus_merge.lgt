@@ -34,6 +34,16 @@
         ::gettext(S2, T2),
         ::cannot_start_sentence(T2), !.
 
+    % Non-working rule.
+    % lines_mergable(element(_, _, text, A1, _),
+    %                element(N2, P2, text, A2, S2)) :-
+    %     option(itemset(_), A1),
+    %     % debugger::trace,
+    %     \+ option(itemset(_), A2),
+    %     \+ ::section(element(N2, P2, text, A2, S2), _),
+    %     ::gettext(S2, T2),
+    %     ::cannot_start_sentence(T2), !.
+
     lines_mergable(element(_, _, text, _, S1),
                    element(N2, P2, text, A2, S2)) :-
         \+ ::par_start(element(N2, P2, text, A2, S2)),

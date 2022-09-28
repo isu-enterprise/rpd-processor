@@ -203,7 +203,7 @@
        !.
 
     lines_mergable(element(_N1, Par1, Tag, Attrs1, _S1), element(N2, Par2, Tag, Attrs2, S2)):-
-       Par1 < Par2,
+       Par1 \= Par2,
        \+ par_start(element(N2, Par2, Tag, Attrs2, S2)),
        option(left(L2), Attrs2),
        ::deviation(paragraph, [LeftD, _RightD]),

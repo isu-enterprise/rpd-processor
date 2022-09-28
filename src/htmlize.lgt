@@ -166,7 +166,7 @@
 
     rdfa_attr(X) :-
         member(X, [resource, about, property, vocab,
-                   typeof, refix, datatype, rel, rev]).
+                   typeof, refix, datatype, rel, rev, itemset]).
 
     :- protected(refine_node/2).
     % :- mode(refine_node, Solutions).
