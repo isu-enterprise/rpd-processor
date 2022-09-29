@@ -29,27 +29,27 @@
 
     groping_items :-
         ::range(text, Begin, End),
-        groping_items(Begin, End, none).
+        groping_items(Begin, End, none, ding(_)).
 
-    groping_items(N, End, none) :-
+    groping_items(N, End, none, O) :-
         N =< End,
+        % ( N = 216 -> debugger::trace; true),
         ::element(element(N, P, text, Attrs, S)),
+        option(O, Attrs),
         option(itemset(Set), Attrs), !,
         container(O, _, Cnt),
-        option(O, Attrs), !,
-        % ( Set=1067 -> debugger::trace; true),
         Q = element(N, P, text, [ group=Cnt | Attrs], [element(N, P, text, Attrs, S)]),
         ::replace(element(N, P, text, Attrs, S), Q),
-        grouping0(End, Q, group(Set, Cnt, N)).
-    groping_items(N, End, none) :-
+        grouping0(End, Q, group(Set, Cnt, N), O).
+    groping_items(N, End, none, O) :-
         N =< End,
         ::element(element(N, _, text, Attrs, _)),
         \+ option(itemset(_), Attrs), !,
-        ( ::next(N, N1) -> groping_items(N1, End, none); true).
+        ( ::next(N, N1) -> groping_items(N1, End, none, O); true).
 
-    groping_items(_, _, _).
+    groping_items(_, _, _, _).
 
-    grouping0(End, element(N, P, text, Attrs, S), group(Set, Cnt, N)) :-
+    grouping0(End, element(N, P, text, Attrs, S), group(Set, Cnt, N), O) :-
         (
           ::next(N, N1),
           ::element(N1, P1, text, Attrs1, S1),
@@ -57,8 +57,8 @@
             append(S, [element(N1, P1, text, Attrs1, S1)], SN),
             ::replace(element(N, P, text, Attrs, S), element(N, P, text, Attrs, SN)),
             ::remove(element(N1, P1, text, Attrs1, S1)),
-            grouping0(End, element(N, P, text, Attrs, SN), group(Set, Cnt, N));
-          ( ::next(N, N1) -> groping_items(N1, End, none) ; true)).
+            grouping0(End, element(N, P, text, Attrs, SN), group(Set, Cnt, N), O);
+          ( ::next(N, N1) -> groping_items(N1, End, none, O) ; true)).
 
 
     container(ding(V), V, ul).

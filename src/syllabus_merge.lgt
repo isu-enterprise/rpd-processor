@@ -34,15 +34,41 @@
         ::gettext(S2, T2),
         ::cannot_start_sentence(T2), !.
 
-    % Non-working rule.
-    % lines_mergable(element(_, _, text, A1, _),
-    %                element(N2, P2, text, A2, S2)) :-
-    %     option(itemset(_), A1),
-    %     % debugger::trace,
-    %     \+ option(itemset(_), A2),
-    %     \+ ::section(element(N2, P2, text, A2, S2), _),
-    %     ::gettext(S2, T2),
-    %     ::cannot_start_sentence(T2), !.
+    lines_mergable(element(_, _, text, A1, _),
+                   element(N2, _, text, A2, _)) :-
+        option(itemset(Set), A1),
+        % debugger::trace,
+        \+ option(itemset(_), A2),
+        \+ option(section(_), A2),
+        ::next(N2, N3),
+        ::element(element(N3, _, text, A3, _)),
+        option(itemset(Set), A3), !.
+
+    lines_mergable(element(_, _, text, A1, _),
+                   element(N2, _, text, A2, _)) :-
+        option(itemset(Set), A1),
+        % debugger::trace,
+        option(itemset(Set1), A2),
+        Set1 \= Set, % The only foreign item.
+        \+ option(section(_), A2),
+        ::next(N2, N3),
+        ::element(element(N3, _, text, A3, _)),
+        option(itemset(Set), A3), !.
+
+    lines_mergable(element(_, _, text, A1, _),
+                   element(N2, _, text, A2, S2)) :-
+        option(itemset(Set1), A1),
+        % debugger::trace,
+        \+ option(itemset(_), A2),
+        \+ option(section(_), A2),
+        ::next(N2, N3),
+        ::element(element(N3, _, text, A3, _)),
+        option(itemset(Set3), A3),
+        Set1 \= Set3, % The only foreign item.
+        ::gettext(S2, T2),
+        string_length(T2, L2), L2 < 40,
+        !.
+
 
     lines_mergable(element(_, _, text, _, S1),
                    element(N2, P2, text, A2, S2)) :-
@@ -69,6 +95,8 @@
         re_match("url\s*:\s*$", L, []).
     unterminated_sentence(T) :-
         re_match("\s+[а-я]{1,3}\s+$", T, []).
+    unterminated_sentence(T) :-
+        re_match("%[a-zA-Z]{0,2}$", T, []).
 
     :- protected(cannot_start_sentence/1).
     % :- mode(cannot_start_sentence, Solutions).
@@ -79,6 +107,9 @@
     cannot_start_sentence(T) :-
         re_matchsub("^\s*[а-я]+\s*([):]?)", T, Dict, []),
         get_dict(1, Dict, ""), !.
+
+    cannot_start_sentence(T) :-
+        re_match("[a-zA-Z]{0,2}%", T, []).
 
     :- protected(text_adjust/2).
     % :- mode(text_adjust, Solutions).
