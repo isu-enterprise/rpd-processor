@@ -37,7 +37,6 @@
     lines_mergable(element(_, _, text, A1, _),
                    element(N2, _, text, A2, _)) :-
         option(itemset(Set), A1),
-        % debugger::trace,
         \+ option(itemset(_), A2),
         \+ option(section(_), A2),
         ::next(N2, N3),
@@ -47,7 +46,6 @@
     lines_mergable(element(_, _, text, A1, _),
                    element(N2, _, text, A2, _)) :-
         option(itemset(Set), A1),
-        % debugger::trace,
         option(itemset(Set1), A2),
         Set1 \= Set, % The only foreign item.
         \+ option(section(_), A2),
@@ -58,7 +56,6 @@
     lines_mergable(element(_, _, text, A1, _),
                    element(N2, _, text, A2, S2)) :-
         option(itemset(Set1), A1),
-        % debugger::trace,
         \+ option(itemset(_), A2),
         \+ option(section(_), A2),
         ::next(N2, N3),
@@ -110,6 +107,9 @@
 
     cannot_start_sentence(T) :-
         re_match("[a-zA-Z]{0,2}%", T, []).
+
+    cannot_start_sentence(T) :-
+        re_match("^https?://", T, []).
 
     :- protected(text_adjust/2).
     % :- mode(text_adjust, Solutions).

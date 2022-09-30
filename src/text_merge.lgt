@@ -273,8 +273,8 @@
         merge_options(T1, T2, T).
 
     merge_bbox_page(P1, P2, A1, A2, [left(L), top(To1), width(W), height(H) | T]) :-
-        ::element(P1, _, page, PAttrs1, _),
-        ::element(P2, _, page, PAttrs2, _),
+        getpageattrs(P1, PAttrs1),
+        getpageattrs(P2, PAttrs2),
         select_option(left(L1), A1, A11),
         select_option(left(L2), A2, A21),
         option(textleft(TL1), PAttrs1),
@@ -311,6 +311,11 @@
         select_option(top(To2), A23, T2),
         To is min(To1, To2),
         merge_options(T1, T2, T).
+
+    getpageattrs(sp(_,P), Attrs) :- !,
+        getpageattrs(P, Attrs).
+    getpageattrs(P, Attrs) :-
+        ::element(P, _, page, Attrs, _).
 
     append_bodies(element(N, P, Tag, A, S),
                   S1,

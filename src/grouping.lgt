@@ -12,28 +12,32 @@
     :- use_module(library(pcre), [re_match/2, re_match/3,
                                   re_matchsub/4, re_split/4]).
 
-    :- protected(process_grouping/0).
+    :- protected(process_grouping/1).
     % :- mode(process_grouping, Solutions).
-    :- info(process_grouping/0, [
+    :- info(process_grouping/1, [
         comment is 'Run grouping phase.'
     ]).
 
-    process_grouping :-
-        groping_items.
+    process_grouping(Kind) :-
+        groping_items(Kind).
 
-    :- protected(groping_items/0).
+    :- protected(groping_items/1).
     % :- mode(groping_items, Solutions).
-    :- info(groping_items/0, [
+    :- info(groping_items/1, [
         comment is 'Grouping ttems in ol or ul lists'
     ]).
 
-    groping_items :-
+    groping_items(ul) :-
         ::range(text, Begin, End),
         groping_items(Begin, End, none, ding(_)).
 
+    groping_items(ol) :-
+        ::range(text, Begin, End),
+        groping_items(Begin, End, none, item(_)).
+
     groping_items(N, End, none, O) :-
         N =< End,
-        % ( N = 216 -> debugger::trace; true),
+        %( N = 220 -> debugger::trace; true),
         ::element(element(N, P, text, Attrs, S)),
         option(O, Attrs),
         option(itemset(Set), Attrs), !,
@@ -43,8 +47,7 @@
         grouping0(End, Q, group(Set, Cnt, N), O).
     groping_items(N, End, none, O) :-
         N =< End,
-        ::element(element(N, _, text, Attrs, _)),
-        \+ option(itemset(_), Attrs), !,
+        ::element(element(N, _, text, _Attrs, _)), !,
         ( ::next(N, N1) -> groping_items(N1, End, none, O); true).
 
     groping_items(_, _, _, _).
