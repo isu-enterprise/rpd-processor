@@ -4,7 +4,7 @@
         version is 1:0:0,
         author is 'Evgeny Cherkashin <eugeneai@irnok.net>',
         date is 2022-09-26,
-        comment is 'Description'
+        comment is 'Paragraph merge rules applied for course descriptions'
     ]).
 
     :- use_module(lists, [member/2]).
@@ -82,7 +82,7 @@
     :- protected(unterminated_sentence/1).
     % :- mode(unterminated_sentence, Solutions).
     :- info(unterminated_sentence/1, [
-        comment is 'Determine wether the sentence is not terminted.'
+        comment is 'Determine wether the sentence is not well terminted.'
     ]).
 
     unterminated_sentence(T) :-
@@ -126,7 +126,7 @@
     :- protected(list_item/1).
     % :- mode(list_item, Solutions).
     :- info(list_item/1, [
-        comment is 'Options contains eiter nonempty ding or item.'
+        comment is 'Options contain eiter nonempty ding or item.'
     ]).
 
     list_item(Attrs) :-

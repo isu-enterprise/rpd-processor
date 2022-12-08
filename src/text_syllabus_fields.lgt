@@ -8,7 +8,7 @@
         comment is 'Recognition configuration for the ISU syllabus fields'
     ]).
 
-	:- use_module(library(option), [option/2, option/3]).
+    :- use_module(library(option), [option/2, option/3]).
     :- use_module(library(pcre), [re_match/2, re_match/3,
                                   re_matchsub/4, re_split/4]).
 

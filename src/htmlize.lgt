@@ -7,8 +7,8 @@
         comment is 'Description'
     ]).
 
-	:- use_module(lists, [member/2, flatten/2, append/3]).
-	:- use_module(library(sgml_write), [html_write/3]).
+    :- use_module(lists, [member/2, flatten/2, append/3]).
+    :- use_module(library(sgml_write), [html_write/3]).
     :- use_module(library(option), [select_option/3, select_option/4,
                                     option/3, option/2]).
     :- use_module(library(pcre), [re_match/2, re_match/3,

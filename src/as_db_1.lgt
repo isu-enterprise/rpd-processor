@@ -1,64 +1,64 @@
 :- object(as_db(_XML_)).
 
-	:- info([
-		version is 1:0:0,
-		author is 'Evgeny Cherkashin',
-		date is 2022-09-14,
-		comment is 'Represents an XML document as a set of lines'
-	]).
+    :- info([
+        version is 1:0:0,
+        author is 'Evgeny Cherkashin',
+        date is 2022-09-14,
+        comment is 'Represents an XML document as a set of lines'
+    ]).
 
     :- use_module(lists, [member/2, append/3]).
     :- use_module(library(option), [select_option/3, select_option/4,
                                     option/3, option/2,
                                     merge_options/3]).
 
-	:- public(convert/0).
-	:- info(convert/0, [
-		comment is 'Converts _XML_ to a set of elements'
-	]).
+    :- public(convert/0).
+    :- info(convert/0, [
+        comment is 'Converts _XML_ to a set of elements'
+    ]).
 
-	convert :-
-		_XML_::load(Term),
-		convert(Term).
+    convert :-
+        _XML_::load(Term),
+        convert(Term).
 
-	:- public(convert/1).
-	:- info(convert/1, [
-		comment is 'Converts an XML term to set of elements'
-	]).
+    :- public(convert/1).
+    :- info(convert/1, [
+        comment is 'Converts an XML term to set of elements'
+    ]).
 
-	convert(Term) :-
-		convert(Term, 1, L, none),
+    convert(Term) :-
+        convert(Term, 1, L, none),
         Last = L - 1,
-		asserta(range(1, Last)),
+        asserta(range(1, Last)),
         count_neighbors(1, Last, []).
 
-	:- public(convert/4).
-	:- info(convert/4, [
-		comment is 'Converts XML term to a set of elements, supplying ids.'
-	]).
+    :- public(convert/4).
+    :- info(convert/4, [
+        comment is 'Converts XML term to a set of elements, supplying ids.'
+    ]).
 
-	convert([], N, N, _).
+    convert([], N, N, _).
 
-	convert([X|T], N, N2, Parent):-
-		convert(X, N, N1, Parent),
-		convert(T, N1, N2, Parent).
+    convert([X|T], N, N2, Parent):-
+        convert(X, N, N1, Parent),
+        convert(T, N1, N2, Parent).
 
-	convert(element(Name, Attrs, Terms), N, N2, Parent) :-
+    convert(element(Name, Attrs, Terms), N, N2, Parent) :-
         convertattrs(Attrs, NAttrs),
-		convert1(element(Name, NAttrs, Terms), Parent, N, RestTerms),
-		N1 is N + 1,
-		convert(RestTerms, N1, N2, N).
+        convert1(element(Name, NAttrs, Terms), Parent, N, RestTerms),
+        N1 is N + 1,
+        convert(RestTerms, N1, N2, N).
 
-	convert1(element(text, Attrs, List), Parent, N, []) :- !,
+    convert1(element(text, Attrs, List), Parent, N, []) :- !,
         convert_el_list(List, CList),
         % debugger::trace,
         make_flat([element(N, Parent, text, Attrs, CList)],
                   [element(N, Parent, text, FAttrs, FList)]),
-		assertz(element(N, Parent, text, FAttrs, FList)).
+        assertz(element(N, Parent, text, FAttrs, FList)).
 
-			% Defaults to just assert Name(N, Attrs, Parent)
-	convert1(element(Name, Attrs, Terms), Parent, N, Terms) :-
-		assertz(element(N, Parent, Name, Attrs, '')).
+            % Defaults to just assert Name(N, Attrs, Parent)
+    convert1(element(Name, Attrs, Terms), Parent, N, Terms) :-
+        assertz(element(N, Parent, Name, Attrs, '')).
 
     make_flat([], []).
     make_flat([element(N, P, text, Attrs,
@@ -116,10 +116,10 @@
         comment is 'Associates tag with attribute'
     ]).
 
-	text_name(b,bold).
-	text_name(text,text).
-	text_name(i,italic).
-	text_name(a,anchor).
+    text_name(b,bold).
+    text_name(text,text).
+    text_name(i,italic).
+    text_name(a,anchor).
 
     count_neighbors(N, Last, L) :-
         N =< Last, !,
@@ -145,33 +145,33 @@
 
 
 
-	:- protected(element/5).
-	:- info(element/5, [
-		comment is 'Dynamic predicate represents an element of a PDF structure.'
-	]).
+    :- protected(element/5).
+    :- info(element/5, [
+        comment is 'Dynamic predicate represents an element of a PDF structure.'
+    ]).
     :- dynamic(element/5).
 
-	:- protected(element/1).
-	:- info(element/1, [
-		comment is 'Represents an element of a PDF structure as term element/5.'
-	]).
+    :- protected(element/1).
+    :- info(element/1, [
+        comment is 'Represents an element of a PDF structure as term element/5.'
+    ]).
 
     element(element(N, P, Tag, A, S)) :-
         element(N, P, Tag, A, S).
 
-	:- protected(element/2).
-	:- info(element/2, [
-		comment is 'Represents an element of a PDF structure with number N as element/5.'
-	]).
+    :- protected(element/2).
+    :- info(element/2, [
+        comment is 'Represents an element of a PDF structure with number N as element/5.'
+    ]).
 
     element(element(N, P, Tag, A, S), N) :-
         element(N, P, Tag, A, S).
 
-	:- protected(neighborN/2).
+    :- protected(neighborN/2).
     :- info(neighborN/2, [
-		comment is 'Dynamic prdicate defines that two element of the same kind are neighbors'
-	]).
-	:- dynamic(neighborN/2).
+        comment is 'Dynamic prdicate defines that two element of the same kind are neighbors'
+    ]).
+    :- dynamic(neighborN/2).
 
     :- protected(font/8).
     % :- mode(font, Solutions).
@@ -189,54 +189,54 @@
     add_font(Id, Num, Size, Name, Bold, Italic, Attrs, Color) :-
         assertz(font(Id, Num, Size, Name, Bold, Italic, Attrs, Color)).
 
-	:- protected(range/2).
+    :- protected(range/2).
     :- info(range/2, [
-		comment is 'Dynamic predicate defines the range of id variation for the elements'
-	]).
-	:- dynamic(range/2).
+        comment is 'Dynamic predicate defines the range of id variation for the elements'
+    ]).
+    :- dynamic(range/2).
 
-	:- protected(range/3).
+    :- protected(range/3).
     :- info(range/3, [
-		comment is 'Dynamic predicate defines the range of id variation for elements of a kind'
-	]).
-	:- dynamic(range/3).
+        comment is 'Dynamic predicate defines the range of id variation for elements of a kind'
+    ]).
+    :- dynamic(range/3).
 
 
-	:- public(print/0).
-	:- info(print/0, [
-		comment is 'Print list of tags, used in debugging'
-	]).
+    :- public(print/0).
+    :- info(print/0, [
+        comment is 'Print list of tags, used in debugging'
+    ]).
 
-	printn(Tag, N) :-
-		element(N, Parent, Tag, Attrs, String), !,
-		format("\n~w-~w ~w ~w\n     '~w'\n", [N, Parent, Tag, Attrs, String]).
-	printn(_, _).
+    printn(Tag, N) :-
+        element(N, Parent, Tag, Attrs, String), !,
+        format("\n~w-~w ~w ~w\n     '~w'\n", [N, Parent, Tag, Attrs, String]).
+    printn(_, _).
 
-	print :-
-		range(Start, End),
-		forall(gen(Start, End, N), printn(_, N)).
+    print :-
+        range(Start, End),
+        forall(gen(Start, End, N), printn(_, N)).
 
     :- public(gen/3).
     :- info(gen/3, [
        comment is 'Generates number from Start to End into N'
     ]).
 
-	gen(Start, End, Start) :- Start =< End.
-	gen(Start, End, N) :-
-		Start =< End,
-		Start1 is Start + 1,
-		gen(Start1, End, N).
+    gen(Start, End, Start) :- Start =< End.
+    gen(Start, End, N) :-
+        Start =< End,
+        Start1 is Start + 1,
+        gen(Start1, End, N).
 
     :- public(ngen/3).
     :- info(ngen/3, [
        comment is 'Generates number from End downto Start into N'
     ]).
 
-	ngen(Start, End, End) :- Start =< End.
-	ngen(Start, End, N) :-
-		Start =< End,
-		End1 is End - 1,
-		ngen(Start, End1, N).
+    ngen(Start, End, End) :- Start =< End.
+    ngen(Start, End, N) :-
+        Start =< End,
+        End1 is End - 1,
+        ngen(Start, End1, N).
 
     :- public(gen/2).
     :- info(gen/2, [
@@ -288,26 +288,26 @@
        gen(Start, End, N2),
        element(N2, Par, Tag, Attrs2, S2), !.
 
-	:- public(print/1).
-	:- info(print/1, [
-		comment is 'Print all of tags, supplied as argument used in debugging'
-	]).
+    :- public(print/1).
+    :- info(print/1, [
+        comment is 'Print all of tags, supplied as argument used in debugging'
+    ]).
 
-	print(Tag) :-
-		forall(gen(N), printn(Tag, N)).
+    print(Tag) :-
+        forall(gen(N), printn(Tag, N)).
 
-	:- protected(replace/2).
-	:- info(replace/2, [
-		comment is 'Replaces a fact in object database'
-	]).
+    :- protected(replace/2).
+    :- info(replace/2, [
+        comment is 'Replaces a fact in object database'
+    ]).
 
-	replace(A,B) :-
+    replace(A,B) :-
         % A = element(N, P, Tag, A, S),
         % B = element(N, P, Tag, A, S)
         % A = element(N, P, Na, Aa, S)
         % format("RETRACT ALL:~w-~w-~w ~w '~w'\n", [N, P, Na, Aa, S])),
-		retract(A),
-		asserta(B).   % Assuming all conversions are made from up to down
+        retract(A),
+        asserta(B).   % Assuming all conversions are made from up to down
 
     :- public(remove/1).
     :- info(remove/1, [
@@ -409,7 +409,7 @@
     ]).
 
     print_as_text(Tag) :-
-		forall(gen(N), print_as_text(Tag, N)).
+        forall(gen(N), print_as_text(Tag, N)).
 
     print_as_text(Tag, _N) :-
         element(_N, _P, Tag, _Attrs, S), !,

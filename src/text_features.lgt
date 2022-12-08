@@ -1,4 +1,3 @@
-
 :- category(text_features).
 
    :- info([
@@ -14,7 +13,7 @@
     ]).
 
     :- use_module(lists, [member/2]).
-	:- use_module(library(option), [option/2, option/3]).
+    :- use_module(library(option), [option/2, option/3]).
     :- use_module(library(pcre), [re_match/2, re_match/3,
                                   re_matchsub/4, re_split/4]).
 

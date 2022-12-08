@@ -8,7 +8,7 @@
     ]).
 
     :- use_module(lists, [member/2, append/3]).
-	:- use_module(library(option), [option/2, option/3, select_option/3]).
+    :- use_module(library(option), [option/2, option/3, select_option/3]).
     :- use_module(library(pcre), [re_match/2, re_match/3,
                                   re_matchsub/4, re_split/4]).
     :- public(process_fonts/0).
@@ -98,13 +98,5 @@
     equal_font(F1, F2) :-
         ::font(_, F1, Sz, Family, Bold, Italic, _, Color),
         ::font(_, F2, Sz, Family, Bold, Italic, _, Color), !.
-
-
-
-
-
-
-
-
 
 :- end_category.
