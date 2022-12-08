@@ -60,13 +60,18 @@
       true.
 
    % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/B1.O.30_Sistemy_iskusstvennogo_intellekta_4003.pdf.xml").
+   % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/2018B1.V.OD.4Rekursivno-logicheskoeprogrammirovanie_2766.pdf.xml").
+   % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/B1.V.06_Funktsionalnoe_programmirovanie_4001.pdf.xml").
+   % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/B1.O.20_Bazy_dannykh_4003.pdf.xml").
+   xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/B1.V.10_Parallelnoe_programmirovanie_4001.pdf.xml").
+
    % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/simplest.xml").
    % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/simple.xml").
    % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/russian.xml").
-   xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/ex1.xml").
+   % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/ex1.xml").
    % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/ex2.xml").
    % xml_file_name("/home/eugeneai/projects/code/rpd-processor/data/xml/ex3.xml").
 
-   html_file_name("/home/eugeneai/projects/code/rpd-processor/data/result.html").
+   html_file_name("/home/eugeneai/projects/code/rpd-processor/data/result-db.html").
 
 :- end_object.

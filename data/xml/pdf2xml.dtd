@@ -28,9 +28,9 @@
 	height CDATA #REQUIRED
 	font CDATA #REQUIRED
 >
-<!ELEMENT b (#PCDATA)>
-<!ELEMENT i (#PCDATA)>
-<!ELEMENT a (#PCDATA)>
+<!ELEMENT b (#PCDATA | i | a)>
+<!ELEMENT i (#PCDATA | b | a)>
+<!ELEMENT a (#PCDATA | b | i)>
 <!ATTLIST a
     href CDATA #REQUIRED
 >

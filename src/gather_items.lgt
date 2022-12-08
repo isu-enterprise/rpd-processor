@@ -19,6 +19,7 @@
 
     process_item_gathering :-  % Move forward till breaking pattern within items or a section.
         ::range(text, Begin, End),
+        % debugger::trace,
         gather_item(Begin, End, none).
 
     gather_item(N, End, itemset(ding(V), P, R)) :-
@@ -30,6 +31,9 @@
         N =< End,
         ::element(E, N),
         is_item(E, item(V1)),
+        atomic(V),
+        atomic(V1),
+        % format("EEEE: ~w < ~w~n", [V, V1]),
         V < V1,
         V1 < V + 10, !,
         gather0(E, End, itemset(item(V1), P, R)).
@@ -76,6 +80,8 @@
 
     find_trend([itemset(ding(V), P) | R], ding(V), itemset(ding(V), P, R)) :-!.
     find_trend([itemset(item(V), P) | R], item(V1), itemset(ding(V), P, R)) :-
+        atomic(V),
+        atomic(V1),
         V < V1,
         V1 < V + 10, !.
     find_trend([_ | T], O, ItemSet) :-

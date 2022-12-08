@@ -9,7 +9,8 @@
 
     :- use_module(lists, [member/2, append/3]).
     :- use_module(library(option), [select_option/3, select_option/4,
-                                    option/3, option/2]).
+                                    option/3, option/2,
+                                    merge_options/3]).
 
 	:- public(convert/0).
 	:- info(convert/0, [
@@ -44,32 +45,60 @@
 
 	convert(element(Name, Attrs, Terms), N, N2, Parent) :-
         convertattrs(Attrs, NAttrs),
-        % format("CNV: <~w ~w>\n", [Name, NAttrs]),
-%        debugger::trace,
 		convert1(element(Name, NAttrs, Terms), Parent, N, RestTerms),
 		N1 is N + 1,
 		convert(RestTerms, N1, N2, N).
 
 	convert1(element(text, Attrs, List), Parent, N, []) :- !,
         convert_el_list(List, CList),
-		assertz(element(N, Parent, text, Attrs, CList)).
+        % debugger::trace,
+        make_flat([element(N, Parent, text, Attrs, CList)],
+                  [element(N, Parent, text, FAttrs, FList)]),
+		assertz(element(N, Parent, text, FAttrs, FList)).
 
 			% Defaults to just assert Name(N, Attrs, Parent)
 	convert1(element(Name, Attrs, Terms), Parent, N, Terms) :-
-%        debugger::trace,
 		assertz(element(N, Parent, Name, Attrs, '')).
+
+    make_flat([], []).
+    make_flat([element(N, P, text, Attrs,
+                       [element(_, _, text, IA, Body)]) | T],
+              [element(N, P, text, MAttrs, Body) | R]):- !,
+        merge_options(Attrs, IA, MAttrs),
+        make_flat(T, R).
+    make_flat([element(N, P, text, Attrs, [Body]) | T],
+              [element(N, P, text, Attrs, [Body]) |R]):-
+        aos(Body),
+        make_flat(T, R).
+
+    aos(T) :- atom(T),!.
+    aos(T) :- string(T).
 
     convert_el_list([], []).
     convert_el_list([ element(Tag, Attrs, [Atom]) | T],
-                    [ element(0, 0, text, [ Name = true | CAttrs ], Text) | CT ]) :- !,
+                    [ element(0, 0, text, [ Name = true | CAttrs ], Text) | CT ]) :-
+        atom(Atom), !,
         convertattrs(Attrs, CAttrs),
         text_name(Tag, Name),
         atom_string(Atom, Text),
         convert_el_list(T, CT).
 
     convert_el_list([Atom | T], [Text | CT]):-
+        atom(Atom), !,
         atom_string(Atom, Text),
         convert_el_list(T, CT).
+
+    convert_el_list([ element(Tag, Attrs, [element(ETag, [], Body)]) | T],
+                    [ element(0, 0, text, [ Name = true, EName = true | CAttrs ], Text) | CT ]) :- !,
+        % debugger::trace,
+        convertattrs(Attrs, CAttrs),
+        text_name(Tag, Name),
+        text_name(ETag, EName),
+        convert_el_list(Body, [Text]),
+        convert_el_list(T, CT).
+    convert_el_list([ E | _], _) :- !,
+        format("ERROR: Cannot convert ~w.~n", [E]), fail.
+
 
     convertattrs([], []).
     convertattrs([K=V|T], [K=NV|T1]) :-
