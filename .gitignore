@@ -3,3 +3,4 @@
 _*.txt
 \#*
 /data
+/src/load/.lgt_tmp/

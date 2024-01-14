@@ -1,3 +1,6 @@
+
+:- set_logtalk_flag(unknown_entities, silent).
+
 :- category(text_syllabus_fields,
     extends(text_fields)).
 

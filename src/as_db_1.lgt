@@ -7,7 +7,7 @@
         comment is 'Represents an XML document as a set of lines'
     ]).
 
-    :- use_module(lists, [member/2, append/3]).
+    :- use_module(library(lists), [member/2, append/3]).
     :- use_module(library(option), [select_option/3, select_option/4,
                                     option/3, option/2,
                                     merge_options/3]).
