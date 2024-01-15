@@ -1,11 +1,11 @@
 
 
 :- object(it_chair_2023_2024_b,
-   extends(xlsx_load("/home/eugeneai/projects/code/rpd-processor/data/load-2023-2024/distr/каф-70-таб-2-3-5-бюджет-(2023-24).xlsx"))).
+   extends(teachLoad("/home/eugeneai/projects/code/rpd-processor/data/load-2023-2024/distr/каф-70-таб-2-3-5-бюджет-(2023-24).xlsx"))).
 :- end_object.
 
 :- object(it_chair_2023_2024_v,
-   extends(xlsx_load("/home/eugeneai/projects/code/rpd-processor/data/load-2023-2024/distr/каф-70-таб-2-3-5-вб-(2023-24).xlsx"))).
+   extends(teachLoad("/home/eugeneai/projects/code/rpd-processor/data/load-2023-2024/distr/каф-70-таб-2-3-5-вб-(2023-24).xlsx"))).
 :- end_object.
 
 :- object(app).
@@ -18,8 +18,13 @@
    ]).
 
    :- initialization((
-        it_chair_2023_2024_b::load
-      , it_chair_2023_2024_v::load
+      it_chair_2023_2024_b::load,
+      it_chair_2023_2024_v::load,
+      it_chair_2023_2024_b::sheet(9,S),
+      %debugger::trace,
+      % S::load,
+      S::dump,
+      true
    )).
 
    :- protected(open_load/0).

@@ -3,4 +3,6 @@
 _*.txt
 \#*
 /data
-/src/load/.lgt_tmp/
+.lgt_tmp
+_
+_?
