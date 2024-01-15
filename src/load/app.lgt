@@ -19,11 +19,13 @@
 
    :- initialization((
       it_chair_2023_2024_b::load,
+      it_chair_2023_2024_b::list,
       it_chair_2023_2024_v::load,
+      it_chair_2023_2024_b::list,
       it_chair_2023_2024_b::sheet(9,S),
-      %debugger::trace,
-      % S::load,
       S::dump,
+      it_chair_2023_2024_b::sheet(11,S2),
+      S2::dump,
       true
    )).
 

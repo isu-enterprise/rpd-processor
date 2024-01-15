@@ -39,8 +39,21 @@
       forall(member(T,Things), format('~w\n', [T])).
 :- end_object.
 
+:- object(row(_Number_, _Attrs_, _Cells_, _WB_)).
+   :- use_module(library(sgml), [load_xml_file/2]).
+   :- use_module(library(xpath), [xpath/3]).
+   :- use_module(library(option), [option/2]).
+   :- use_module(library(lists), [member/2]).
 
-:- object(sheet(_Name_,_Id_, _XML_)).
+   :- op(400, fx, //).
+   :- op(400, fx, /).
+   :- op(200, fy, @).
+
+
+
+:- end_object.
+
+:- object(sheet(_Name_, _Id_, _XML_, _WB_)).
    :- use_module(library(sgml), [load_xml_file/2]).
    :- use_module(library(xpath), [xpath/3]).
    :- use_module(library(option), [option/2]).
@@ -52,28 +65,32 @@
 
    :- public(dump/0).
    dump:-
-      % format('Steet Id: ~w, Name:~w\n~w\n', [_Id_,_Name_,_XML_]).
-      forall(::row(I,row(I,As,Cs)),
-         format('Row:~w:~w\n', [I, As])).
+      format('Steet Id: ~w, Name:~w WB:~w\n', [_Id_,_Name_,_WB_]),
+      % debugger::trace,
+      forall(::row(I,row(I,As,Cs,Sheet)),
+         format('Row:~w:~w\n~w\n', [I, As, Cs])).
 
    :- protected(parse/0).
 
+   :- dynamic(row_/2).
+   :- private(row_/2).
 
-   :- dynamic(row/2).
+   % :- public(load/0).
+   % load:-
+   %    forall(xpath(_XML_, //row, element(row, Attrs, Cells)),
+   %       load0(Attrs, Cells)).
+
    :- public(row/2).
-
-   :- public(load/0).
-   load:-
-         % debugger::trace,
-      forall(
-         xpath(_XML_, //row, element(row, Attrs, Cells)),
-         load0(Attrs, Cells)).
-
-   load0(Attrs, Cells):-
-      option(r(Rs), Attrs),
-      atom_number(Rs,R),
-      assertz(row(R, row(R,Attrs,Cells))).
-
+   row(Number, row(Number, Attrs, Cells, Self)):-
+      ::row_(Number, row(Number, Attrs, Cells)),
+      self(Self).
+   row(Number, row(Number, Attrs, Cells, Self)):-
+      \+ ::row_(Number, row(Number, Attrs, Cells)),!,
+      xpath(_XML_, //row, element(row, Attrs, Cells)),
+      option(r(NumberS),Attrs),
+      atom_number(NumberS,Number),
+      assertz(row_(Number, row(Number, Attrs, Cells))),
+      self(Self).
 
 :- end_object.
 
@@ -85,8 +102,8 @@
    :- use_module(library(option), [option/2]).
    :- use_module(library(lists), [member/2]).
 
-   :- public(sheet/2).
-   :- dynamic(sheet/2).
+   :- private(sheet_/1).
+   :- dynamic(sheet_/1).
 
    :- op(400, fx, //).
    :- op(400, fx, /).
@@ -98,21 +115,23 @@
       ::parse.
 
    :- protected(parse/0).
+   parse :-
+      ^^list, % TODO: Remove
+      parseSheetList.
 
-   parse:-
-      ::list,
-      nl,
-      forall(::sheet0(Name, sheet(Name, Id, XML)),
-         (format('Sheet: ~w, ~w\n', [Name, Id]),
-          Sheet = sheet(Name, Id, XML),
-          assertz(sheet(Name, Sheet)),
-          assertz(sheet(Id, Sheet)),
-          Sheet::load)
+   list :-
+      forall(::sheet_(sheet(Name,Id,File)), format('Sheet:~w | ~w | ~w\n',[Name, Id, File])).
+
+   :- private(parseSheetList/0).
+   parseSheetList:-
+      forall(::sheet0(Name, sheet(Name, Id, File)),
+         (Sheet = sheet(Name, Id, File),
+          ::assertz(sheet_(Sheet))
+          )
       ).
 
    :- protected(sheet0/2).
-   sheet0(Name, sheet(Name,Id, XML)):-
-      ::goto(file('xl/workbook.xml')),
+   sheet0(Name, sheet(Name,Id, file(File))):-
       ::goto(file('xl/workbook.xml')),
       ::stream(Stream, []),
       load_xml_file(Stream, Xml), !,
@@ -121,11 +140,41 @@
       option(name(Name), Attrs),
       option(sheetId(Ids), Attrs),
       (atom_number(Ids, Id)->true; Id=Ids),
-      format(atom(S),'xl/worksheets/sheet~w.xml', [Id]),
-      ::goto(file(S)),
+      format(atom(File),'xl/worksheets/sheet~w.xml', [Id]).
+
+   :- public(sheet/2).
+   sheet(Id,sheet(Name,Id,XML,WB)):-
+      nonvar(Id),
+      number(Id),!,
+      ::sheet_(sheet(Name,Id,Data)),
+      ::sheetLoad(sheet(Name,Id,Data),sheet(Name,Id,XML,WB)).
+   sheet(Name,sheet(Name,Id,XML,WB)):-
+      nonvar(Name), !,
+      ::sheet_(sheet(Name,Id,Data)),
+      ::sheetLoad(sheet(Name,Id,Data),sheet(Name,Id,XML,WB)).
+   sheet(NameId,sheet(Name,Id,XML,WB)):-
+      var(NameId), !,
+      ::sheet_(sheet(Name,Id,Data)),
+      NameId = Name-Id,
+      ::sheetLoad(sheet(Name,Id,Data),sheet(Name,Id,XML,WB)).
+
+   :- public(sheet/1).
+   sheet(Sheet):-
+      sheet(_, Sheet).
+
+   :- protected(sheetLoad/2).
+   sheetLoad(sheet(Name,Id,file(File)),
+             sheet(Name,Id,XML,Self)):-!,
+      retractall(sheet_(sheet(Name,Id,file(File)))),!,
+      self(Self),
+      ::goto(file(File)),
       ::stream(WStream, []),
       load_xml_file(WStream, XML),
-      close(WStream).
+      close(WStream),
+      asserta(sheet_(sheet(Name,Id,xml(XML)))).
+   sheetLoad(sheet(Name,Id,xml(XML)), sheet(Name,Id,XML,Self)):-
+      self(Self).
+
 
 :- end_object.
 
