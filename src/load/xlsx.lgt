@@ -49,8 +49,6 @@
    :- op(400, fx, /).
    :- op(200, fy, @).
 
-
-
 :- end_object.
 
 :- object(sheet(_Name_, _Id_, _XML_, _WB_)).
@@ -67,30 +65,26 @@
    dump:-
       format('Steet Id: ~w, Name:~w WB:~w\n', [_Id_,_Name_,_WB_]),
       % debugger::trace,
-      forall(::row(I,row(I,As,Cs,Sheet)),
+      self(Self),
+      forall(_WB_::row(Self,row(I,As,Cs,_WB_)),
          format('Row:~w:~w\n~w\n', [I, As, Cs])).
 
    :- protected(parse/0).
 
-   :- dynamic(row_/2).
    :- private(row_/2).
 
-   % :- public(load/0).
-   % load:-
-   %    forall(xpath(_XML_, //row, element(row, Attrs, Cells)),
-   %       load0(Attrs, Cells)).
-
    :- public(row/2).
-   row(Number, row(Number, Attrs, Cells, Self)):-
-      ::row_(Number, row(Number, Attrs, Cells)),
+   row(Number, row(Number, Attrs, Cells, _WB_)):-
+      self(Self),
+      _WB_::row_(Self, row(Number, Attrs, Cells)),
       self(Self).
-   row(Number, row(Number, Attrs, Cells, Self)):-
-      \+ ::row_(Number, row(Number, Attrs, Cells)),!,
+   row(Number, row(Number, Attrs, Cells, _WB_)):-
+      self(Self),
+      \+ _WB_::row_(Self, row(Number, Attrs, Cells)),!,
       xpath(_XML_, //row, element(row, Attrs, Cells)),
       option(r(NumberS),Attrs),
       atom_number(NumberS,Number),
-      assertz(row_(Number, row(Number, Attrs, Cells))),
-      self(Self).
+      assertz(row_(Self, row(Number, Attrs, Cells))).
 
 :- end_object.
 
@@ -102,12 +96,20 @@
    :- use_module(library(option), [option/2]).
    :- use_module(library(lists), [member/2]).
 
-   :- private(sheet_/1).
+   :- public(row_/2).
+   :- dynamic(row_/2).  % Sheet->row.
    :- dynamic(sheet_/1).
+
+   :- private(sheet_/1).
 
    :- op(400, fx, //).
    :- op(400, fx, /).
    :- op(200, fy, @).
+
+   :- public(clear/0).
+   clear:-
+      retractall(row_(_,_)).
+      retractall(sheet_(_)).
 
    :- public(load/0).
    load :-
@@ -172,9 +174,9 @@
       load_xml_file(WStream, XML),
       close(WStream),
       asserta(sheet_(sheet(Name,Id,xml(XML)))).
+
    sheetLoad(sheet(Name,Id,xml(XML)), sheet(Name,Id,XML,Self)):-
       self(Self).
-
 
 :- end_object.
 
