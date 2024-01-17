@@ -39,7 +39,7 @@
       forall(member(T,Things), format('~w\n', [T])).
 :- end_object.
 
-:- object(row(_Number_, _Attrs_, _Cells_, _WB_)).
+:- object(cell(_Ref_, _Attrs_, _Content_, _WB_)).
    :- use_module(library(sgml), [load_xml_file/2]).
    :- use_module(library(xpath), [xpath/3]).
    :- use_module(library(option), [option/2]).
@@ -48,6 +48,77 @@
    :- op(400, fx, //).
    :- op(400, fx, /).
    :- op(200, fy, @).
+
+   :- public(value/1).
+   value(ref(Value)):-
+      type(type(s)), !,
+      member(element(v,[],[Value]), _Content_).
+   % TODO: Unref shares string to value(...)
+   value(value(Value)):-
+      member(element(v,[],[ValueS]), _Content_),!,
+      atom_number(ValueS,Value).
+   value(undef).
+
+   :- public(ref/1).
+   ref(_Ref_).
+
+   :- public(style/1).
+   style(StyleRef):-
+      option(s(StyleRefS), _Attrs_),
+      atom_number(StyleRefS, StyleRef).
+
+   :- public(type/1).
+   type(type(Type)):-
+      option(t(Type), _Attrs_),!.
+   type(undef).
+
+   :- public(formula/1).
+   formula(formula(Formula)):-
+      member(element(f,_,[Formula]), _Content_),!.
+   formula(undef).
+
+   :- public(dump/0).
+   dump:-
+      format(':~w|~w|~w\n', [_Ref_, _Attrs_, _Content_]),
+      % (_Ref_='C20' -> debugger::trace; true),
+      value(Value),
+      style(Style),
+      type(Type),
+      formula(Formula),
+      format('Cell dump:~w t:~w s:~w v:|~w| <- ~w\n', [_Ref_, Type, Style, Value, Formula]).
+
+:- end_object.
+
+:- object(row(_Number_, _Attrs_, _Cells_, _WB_)).
+   :- use_module(library(sgml), [load_xml_file/2]).
+   :- use_module(library(xpath), [xpath/3]).
+   :- use_module(library(option), [option/2]).
+   :- use_module(library(lists), [member/2,nth0/3,nth1/3]).
+
+   :- op(400, fx, //).
+   :- op(400, fx, /).
+   :- op(200, fy, @).
+
+   :- public(cell/2).
+   cell(ref(Atom), cell(Atom, Attrs, Content, _WB_)):-
+      member(element(c, Attrs, Content), _Cells_),
+      option(r(Atom), Attrs).
+   cell(col0(Number), cell(Atom, Attrs, Content, _WB_)):-
+      nth0(Number, _Cells_, element(c, Attrs, Content)),
+      option(r(Atom), Attrs).
+   cell(col1(Number), cell(Atom, Attrs, Content, _WB_)):-
+      nth1(Number, _Cells_, element(c, Attrs, Content)),
+      option(r(Atom), Attrs).
+
+   :- public(dump/0).
+   dump:-
+      format('Row dump:~w|~w\n',[_Number_, _Attrs_]),
+      forall(
+         cell(ref(Ref), Cell),
+         Cell::dump).
+%      forall(
+%         cell(ref(Ref), cell(Ref, Attrs, Content, _)),
+%         format('Cell:~w|~w|~w\n', [Ref, Attrs, Contwent])).
 
 :- end_object.
 
@@ -63,11 +134,12 @@
 
    :- public(dump/0).
    dump:-
-      format('Steet Id: ~w, Name:~w WB:~w\n', [_Id_,_Name_,_WB_]),
+      format('Sheet Id: ~w, Name:~w WB:~w\n', [_Id_,_Name_,_WB_]),
       % debugger::trace,
-      self(Self),
-      forall(_WB_::row(Self,row(I,As,Cs,_WB_)),
-         format('Row:~w:~w\n~w\n', [I, As, Cs])).
+      % self(Self),
+      forall(::row(I,row(I,As,Cs,_WB_)),
+         (length(Cs,CsL),
+         format('Row:~w:~w, length:~w\n', [I, As, CsL]))).
 
    :- protected(parse/0).
 
@@ -84,7 +156,7 @@
       xpath(_XML_, //row, element(row, Attrs, Cells)),
       option(r(NumberS),Attrs),
       atom_number(NumberS,Number),
-      assertz(row_(Self, row(Number, Attrs, Cells))).
+      _WB_::assertz(row_(Self, row(Number, Attrs, Cells))).
 
 :- end_object.
 
@@ -108,7 +180,7 @@
 
    :- public(clear/0).
    clear:-
-      retractall(row_(_,_)).
+      retractall(row_(_,_)),
       retractall(sheet_(_)).
 
    :- public(load/0).

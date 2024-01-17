@@ -24,8 +24,8 @@
       it_chair_2023_2024_b::list,
       it_chair_2023_2024_b::sheet(9,S),
       S::dump,
-      it_chair_2023_2024_b::sheet(11,S2),
-      S2::dump,
+      S::row(20, R),
+      R::dump,
       true
    )).
 
