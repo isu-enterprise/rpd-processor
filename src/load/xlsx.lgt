@@ -151,16 +151,25 @@
    :- public(row/2).
    row(Number, row(Number, Attrs, Cells, _WB_)):-
       self(Self),
-      _WB_::row_(Self, row(Number, Attrs, Cells)),
-      self(Self).
+      \+ _WB_::row_(Self, row(Number, Attrs, Cells)), !,
+      ::loadRows(Self), !,
+      row(Number, row(Number, Attrs, Cells, _WB_)).
+
    row(Number, row(Number, Attrs, Cells, _WB_)):-
       self(Self),
-      \+ _WB_::row_(Self, row(Number, Attrs, Cells)),!,
-      xpath(_XML_, //row, element(row, Attrs, Cells)),
-      option(r(NumberS),Attrs),
-      atom_number(NumberS,Number),
-      _WB_::assertz(row_(Self, row(Number, Attrs, Cells))).
+      _WB_::row_(Self, row(Number, Attrs, Cells)),
+      self(Self).
 
+   :- private(loadRows/1).
+   loadRows(Sheet):-
+      forall(
+         xpath(_XML_, //row, element(row, Attrs, Cells)),
+         (
+           option(r(NumberS),Attrs),
+           atom_number(NumberS,Number),
+           _WB_::assertz(row_(Sheet, row(Number, Attrs, Cells)))
+         )).
+         % (
 :- end_object.
 
 :- object(workbook(_FileName_),

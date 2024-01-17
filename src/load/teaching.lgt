@@ -121,19 +121,18 @@
    :- public(headerRow/1).
    headerRow(Ref):-
       _Sheet_::row(Ref, Row),
-      ::containsAll(Row, ['лекции','экзамены']).
+      ::containsAll(row(Row), ['лекции','экзамены']).
 
    :- use_module(library(lists), [subtract/3, member/2]).
 
    :- protected(containsAll/2).
    containsAll(_, []).
-   containsAll(Row, Elems):-
+   containsAll(row(Row), Elems):-
       Row::cell(ref(Def),Cell),
       Cell::value(value(Val1)),
       subtract(Elems, [E], Els1),
-      debugger::trace,
       ::includes(Val1,E),
-      ::containsAll(Row, Els1).
+      ::containsAll(row(Row), Els1).
 
    :- public(includes/2).
    includes(undef, _):-!,false.
