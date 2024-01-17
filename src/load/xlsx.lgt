@@ -53,10 +53,15 @@
    value(ref(Value)):-
       type(type(s)), !,
       member(element(v,[],[Value]), _Content_).
+   value(value(Value)):- % Return unreferenced value
+      type(type(s)), !,
+      member(element(v,[],[ValueRef]), _Content_),
+      _WB_::unref(ValueRef, Value).
    % TODO: Unref shares string to value(...)
    value(value(Value)):-
       member(element(v,[],[ValueS]), _Content_),!,
       atom_number(ValueS,Value).
+   value(value(undef)):-!.
    value(undef).
 
    :- public(ref/1).
@@ -80,8 +85,9 @@
    :- public(dump/0).
    dump:-
       format(':~w|~w|~w\n', [_Ref_, _Attrs_, _Content_]),
-      % (_Ref_='C20' -> debugger::trace; true),
-      value(Value),
+      %(_Ref_='C2' -> debugger::trace; true),
+      % debugger::trace,
+      value(value(Value)),
       style(Style),
       type(Type),
       formula(Formula),
@@ -114,11 +120,8 @@
    dump:-
       format('Row dump:~w|~w\n',[_Number_, _Attrs_]),
       forall(
-         cell(ref(Ref), Cell),
+         cell(ref(_Ref), Cell),
          Cell::dump).
-%      forall(
-%         cell(ref(Ref), cell(Ref, Attrs, Content, _)),
-%         format('Cell:~w|~w|~w\n', [Ref, Attrs, Contwent])).
 
 :- end_object.
 
@@ -166,7 +169,7 @@
    :- use_module(library(sgml), [load_xml_file/2]).
    :- use_module(library(xpath), [xpath/3]).
    :- use_module(library(option), [option/2]).
-   :- use_module(library(lists), [member/2]).
+   :- use_module(library(lists), [member/2, nth0/3]).
 
    :- public(row_/2).
    :- dynamic(row_/2).  % Sheet->row.
@@ -180,6 +183,7 @@
 
    :- public(clear/0).
    clear:-
+      retractall(unref_(_)),
       retractall(row_(_,_)),
       retractall(sheet_(_)).
 
@@ -216,7 +220,7 @@
       (atom_number(Ids, Id)->true; Id=Ids),
       format(atom(File),'xl/worksheets/sheet~w.xml', [Id]).
 
-   :- public(sheet/2).
+   :- public(sheet/2). % n-based, where n>0
    sheet(Id,sheet(Name,Id,XML,WB)):-
       nonvar(Id),
       number(Id),!,
@@ -249,6 +253,40 @@
 
    sheetLoad(sheet(Name,Id,xml(XML)), sheet(Name,Id,XML,Self)):-
       self(Self).
+
+   :- public(unref_/1).
+   :- dynamic(unref_/1).
+
+   :- public(unref/2).
+   unref(ValueRefA, Value):-
+      ::unref_(Content), !,
+      atom_number(ValueRefA, ValueRef), !,
+      nth0(ValueRef, Content, Elem),
+      ::decodeValue(Elem, Value).
+   unref(ValueRef, Value):-
+      parseRefs, !,
+      % debugger::trace,
+      ::unref(ValueRef, Value).
+
+   :- protected(parseRefs/0).
+   parseRefs:-
+      ::goto(file('xl/sharedStrings.xml')),
+      ::stream(Stream, []),
+      load_xml_file(Stream, Xml),
+      close(Stream),
+      retractall(unref_(_)),
+      xpath(Xml, //sst, element(sst, _Attrs, Content)), !,
+      ::assertz(unref_(Content)).
+
+   :- protected(decodeValue/2).
+   decodeValue(element(si, _, Content), Value):-
+      member(element(t, _, [Value]), Content), !.
+   decodeValue(element(si, _, Content), Value):-
+      findall(V,
+         xpath(Content, //t, element(t, _, [V])),
+         Value), !.
+   decodeValue(Content, _Value):-
+      format('DECODE: ~w\n',[Content]), halt.
 
 :- end_object.
 

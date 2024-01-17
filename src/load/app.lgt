@@ -20,12 +20,15 @@
    :- initialization((
       it_chair_2023_2024_b::load,
       it_chair_2023_2024_b::list,
-      it_chair_2023_2024_v::load,
-      it_chair_2023_2024_b::list,
-      it_chair_2023_2024_b::sheet(9,S),
-      S::dump,
-      S::row(20, R),
-      R::dump,
+%      it_chair_2023_2024_v::load,
+%      it_chair_2023_2024_v::list,
+      it_chair_2023_2024_b::sheet(18,S),
+      % S::dump,
+      S::row(6, R2),
+      R2::dump,
+      S::row(7, R3),
+      R3::dump,
+      write("----------------- ok --------------\n"),
       true
    )).
 
