@@ -287,5 +287,4 @@
          Value), !.
    decodeValue(Content, _Value):-
       format('DECODE: ~w\n',[Content]), halt.
-
 :- end_object.
