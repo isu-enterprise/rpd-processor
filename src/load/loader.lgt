@@ -12,6 +12,7 @@
    , logtalk_load([
           config
         , xlsx
+        , teaching
         , app
         ])
    , halt

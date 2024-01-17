@@ -289,8 +289,3 @@
       format('DECODE: ~w\n',[Content]), halt.
 
 :- end_object.
-
-
-:- object(teachLoad(_FileName_),
-   extends(workbook(_FileName_))).
-:- end_object.
