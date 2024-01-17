@@ -18,16 +18,21 @@
    ]).
 
    :- initialization((
-      it_chair_2023_2024_b::load,
+      it_chair_2023_2024_b::load(fast),
       it_chair_2023_2024_b::list,
 %      it_chair_2023_2024_v::load,
 %      it_chair_2023_2024_v::list,
-      it_chair_2023_2024_b::sheet(18,S),
+      it_chair_2023_2024_b::employee(18,E),
+      % format('Emp: ~w\n', [S]),
+      E = employee(_Name,S),
       % S::dump,
-      S::row(6, R2),
+      E::headerRow(HeaderRef),
+      S::row(HeaderRef, R1),
+      R1::dump,
+      S::row(15, R2),
       R2::dump,
-      S::row(7, R3),
-      R3::dump,
+%      S::row(7, R3),
+%      R3::dump,
       write("----------------- ok --------------\n"),
       true
    )).

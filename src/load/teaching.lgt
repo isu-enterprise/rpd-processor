@@ -118,6 +118,37 @@
       atomic_list_concat(Runs, String),
       ::normaizeSpace(String, Value).
 
+   :- public(headerRow/1).
+   headerRow(Ref):-
+      _Sheet_::row(Ref, Row),
+      ::containsAll(Row, ['лекции','экзамены']).
+
+   :- use_module(library(lists), [subtract/3, member/2]).
+
+   :- protected(containsAll/2).
+   containsAll(_, []).
+   containsAll(Row, Elems):-
+      Row::cell(ref(Def),Cell),
+      Cell::value(value(Val1)),
+      subtract(Elems, [E], Els1),
+      debugger::trace,
+      ::includes(Val1,E),
+      ::containsAll(Row, Els1).
+
+   :- public(includes/2).
+   includes(undef, _):-!,false.
+   includes(_, []):-!.
+   includes(Value, Part):-
+      atom(Value),!,
+      downcase_atom(Value, V),
+      downcase_atom(Part, P),
+      ::normaizeSpace(P, PS),
+      sub_atom(V, _, _, _, PS).
+   includes([X|_], Part):-
+      includes(X, Part),!.
+   includes([_|T], Part):-
+      includes(T, Part).
+
 :- end_object.
 
 
@@ -127,6 +158,13 @@
    load:-
       ^^load,
       load0.
+
+   :- public(load/1).
+   load(all):-
+      ::load.
+
+   load(fast):-
+       ^^load.
 
    :- private(load0/0).
    load0:-
@@ -138,5 +176,12 @@
       ).
    :- dynamic(employee_/1).
    :- public(employee_/1).
+
+   :- public(employee/2).
+   employee(Id, employee(FullName, Sheet)):-
+      ::sheet(Id, Sheet),
+      Sheet = sheet(Name, Id, Content, WB),
+      % debugger::trace,
+      employee(undef, Sheet)::fullName(FullName).
 
 :- end_object.
