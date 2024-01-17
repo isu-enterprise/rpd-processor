@@ -217,6 +217,7 @@
       xpath(Xml, //sheet, element(sheet, Attrs, [])),
       option(name(Name), Attrs),
       option(sheetId(Ids), Attrs),
+      \+ option(state(hidden), Attrs),
       (atom_number(Ids, Id)->true; Id=Ids),
       format(atom(File),'xl/worksheets/sheet~w.xml', [Id]).
 
