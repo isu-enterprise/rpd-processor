@@ -18,7 +18,7 @@
    ]).
 
    :- initialization((
-      it_chair_2023_2024_b::load(fast),
+      it_chair_2023_2024_b::load(all),
       it_chair_2023_2024_b::list,
 %      it_chair_2023_2024_v::load,
 %      it_chair_2023_2024_v::list,

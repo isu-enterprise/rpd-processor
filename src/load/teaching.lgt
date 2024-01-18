@@ -64,20 +64,63 @@
    :- public(toRight/2).
    toRight(Ref, RightRef):-
       ::splitRef(Ref, Atom, Number),
-      ::inc(Atom, Atom1),
-      atom_concat(Atom1,Number, RightRef).
+      %debugger::trace,
+      ::add(Atom, 1, Atom1),
+      atom_concat(Atom1, Number, RightRef).
+      % format('~w->~w\n',[Ref, RightRef]).
 
-   :- protected(inc/2).
-   inc(Number, Number1):-
+   :- public(toLeft/2).
+   toLeft(Ref, LeftRef):-
+      ::splitRef(Ref, Atom, Number),
+      %debugger::trace,
+      ::add(Atom, -1, Atom1),
+      atom_concat(Atom1, Number, LeftRef).
+      % format('~w->~w\n',[Ref, RightRef]).
+
+   :- public(toUp/2).
+   toUp(Ref, UpRef):-
+      ::splitRef(Ref, Atom, Number),
+      %debugger::trace,
+      ::add(Number, -1, Number1),
+      atom_concat(Atom, Number1, UpRef).
+      % format('~w->~w\n',[Ref, RightRef]).
+
+   :- public(toDown/2).
+   toDown(Ref, DownRef):-
+      ::splitRef(Ref, Atom, Number),
+      %debugger::trace,
+      ::add(Number, 1, Number1),
+      atom_concat(Atom, Number1, DownRef).
+      % format('~w->~w\n',[Ref, RightRef]).
+
+   :- protected(add/3).
+   add(Number, V, Number1):-
       number(Number), !,
-      N1 is Number + 1,
+      N1 is Number + V,
       atom_number(Number1, N1).
 
-   inc(Atom, Atom1):-
+   add(Atom, V, Atom1):-
       atom(Atom), !,
-      char_code(Atom, Code),
-      C1 is Code + 1,
-      char_code(Atom1, C1).
+      atom_codes(Atom, Codes), !,
+      codesNumber(0, Codes, Number), !,
+      % debugger::trace,
+      N1 is Number + V,
+      codesNumber([], Codes1, N1), !,
+      atom_codes(Atom1, Codes1), !.
+
+   :- private(codesNumber/2).
+   codesNumber(PV, [], PV):-!.
+   codesNumber(PV, [X|T], N):-
+      nonvar(X), !,
+      NV is PV * 26 + (X-65),
+      codesNumber(NV, T, N).
+   codesNumber([], [65], 0):-!.
+   codesNumber(T, T, 0):-!.
+   codesNumber(T, R, N):-
+      N>0, !,
+      V is 65 + N mod 26,
+      C is N div 26,
+      codesNumber([V|T], R, C).
 
    :- public(field/2).
    field(Name, Value):-
@@ -128,7 +171,7 @@
    :- protected(containsAll/2).
    containsAll(_, []).
    containsAll(row(Row), Elems):-
-      Row::cell(ref(Def),Cell),
+      Row::cell(ref(_Ref),Cell),
       Cell::value(value(Val1)),
       subtract(Elems, [E], Els1),
       ::includes(Val1,E),
@@ -179,8 +222,8 @@
    :- public(employee/2).
    employee(Id, employee(FullName, Sheet)):-
       ::sheet(Id, Sheet),
-      Sheet = sheet(Name, Id, Content, WB),
-      % debugger::trace,
+      Sheet = sheet(_Name, Id, _Content, _WB),
+      % debugg98нек er::trace,
       employee(undef, Sheet)::fullName(FullName).
 
 :- end_object.
