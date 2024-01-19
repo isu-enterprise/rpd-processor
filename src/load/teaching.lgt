@@ -190,10 +190,34 @@
       HR2 is HR1 + 1,
       _Sheet_::row(HR2, R2),
       ref('A', HR2, StartRef), !,
-      ::bh(StartRef, [R1, R2], [], HS), !,
+      ::bh(StartRef, [R1, R2], [], HS1), !,
+      refineHierarchy(HS1,HS),
       self(Self),
       format('HS: ~w\n', [HS]),
       _Load_::assertz(headerStruct_(Self,HS)).
+
+   :- private(refineHierarchy/2).
+   refineHierarchy([],[]).
+   refineHierarchy([Ref-[R1-undef|TT]|T], R):-!,
+      refineHierarchy([Ref-TT|T], R).
+   refineHierarchy([Ref-[R1-Value,R2-undef|TT]|T], R):-!,
+      upperValue(Ref, R2,T, Found),
+      (Found = RN-ValueN ->
+        refineHierarchy([Ref-[R1-Value,RN-ValueN|TT]|T], R);
+        refineHierarchy([Ref-[R1-Value|TT]|T], R)).
+   refineHierarchy([X|T], [X|T1]):-!,
+      refineHierarchy(T, T1).
+
+   :- protected(upperValue/4).
+   upperValue(_, _, [], undef).
+   upperValue(Ref, R, [RefL-L|T], Value):-
+      toLeft(R, RL),
+      toLeft(Ref, RefL), !,
+      member(RL-V,L),
+      (V = undef -> upperValue(RefL, RL, T, Value);
+       Value=RL-V).
+   upperValue(_, _, _, undef).
+
 
    :- protected(bh/4). % Forward processing
    bh(RefL, [RowH, RowL], Prev, Result):-
@@ -205,8 +229,8 @@
       %(RefL='AA15' -> debugger::trace;true),
       % debugger::trace,
       toRight(RefL, NewRef), !,
-      write([RefL, NewRef]), nl,
-      bh(NewRef, [RowH, RowL], [RefL-hs(RefL-VL,RefH-VH)|Prev], Result).
+      % write([RefL, NewRef]), nl,
+      bh(NewRef, [RowH, RowL], [RefL-[RefL-VL,RefH-VH]|Prev], Result).
 
    bh(_, _ , Prev, Prev).
 
