@@ -191,10 +191,25 @@
       _Sheet_::row(HR2, R2),
       ref('A', HR2, StartRef), !,
       ::bh(StartRef, [R1, R2], [], HS1), !,
-      refineHierarchy(HS1,HS),
+      refineHierarchy(HS1,HSE),
+      reduceHeaderStructure(HSE,HS),
       self(Self),
       format('HS: ~w\n', [HS]),
       _Load_::assertz(headerStruct_(Self,HS)).
+
+   :- protected(reduceHeaderStructure/2).
+   reduceHeaderStructure([], []):-!.
+   reduceHeaderStructure([Ref-L|T],
+                         [Atom-RL|T1]):-
+      splitRef(Ref, Atom, _),
+      reduceList(L,RLS),
+      ::normaizeSpace(RLS,RL),
+      reduceHeaderStructure(T, T1).
+
+   :- private(reduceList/2).
+   reduceList([], []):-!.
+   reduceList([_-V|T],[V|T1]):-
+      reduceList(T,T1).
 
    :- private(refineHierarchy/2).
    refineHierarchy([],[]).
@@ -217,7 +232,6 @@
       (V = undef -> upperValue(RefL, RL, T, Value);
        Value=RL-V).
    upperValue(_, _, _, undef).
-
 
    :- protected(bh/4). % Forward processing
    bh(RefL, [RowH, RowL], Prev, Result):-
