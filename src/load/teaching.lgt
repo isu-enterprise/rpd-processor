@@ -1,6 +1,8 @@
 :- set_prolog_flag(re_compile, true).
 
-:- object(employee(_FullName_, _Sheet_)).
+:- object(employee(_FullName_, _Sheet_, _Load_)).
+   :- use_module(library(lists), [subtract/3, member/2, nth0/3, nth1/3]).
+   :- use_module(library(option), [option/2]).
 
    :- public(fullName/1).
    fullName(_FullName_):-
@@ -93,6 +95,11 @@
       atom_concat(Atom, Number1, DownRef).
       % format('~w->~w\n',[Ref, RightRef]).
 
+   :- public(ref/3).
+   ref(Atom, Number, Ref):-
+      atom_number(N, Number), !,
+      atom_concat(Atom, N, Ref), !.
+
    :- protected(add/3).
    add(Number, V, Number1):-
       number(Number), !,
@@ -102,7 +109,7 @@
    add(Atom, V, Atom1):-
       atom(Atom), !,
       atom_codes(Atom, Codes), !,
-      codesNumber(0, Codes, Number), !,
+      codesNumber(1, Codes, Number), !,
       % debugger::trace,
       N1 is Number + V,
       codesNumber([], Codes1, N1), !,
@@ -112,14 +119,19 @@
    codesNumber(PV, [], PV):-!.
    codesNumber(PV, [X|T], N):-
       nonvar(X), !,
-      NV is PV * 26 + (X-65),
+      NV is PV * 26 + (X-65),  % A = 0
       codesNumber(NV, T, N).
-   codesNumber([], [65], 0):-!.
-   codesNumber(T, T, 0):-!.
+%   codesNumber([], [65], 0):-!.
+%   codesNumber(T, T, 0):-!.
+   codesNumber(T, T, N):-
+      N = 1,!.
+   codesNumber(T, [V|T], N):-
+      N < 26, !,
+      V is N + 63.
    codesNumber(T, R, N):-
-      N>0, !,
+      N>25, !,
       V is 65 + N mod 26,
-      C is N div 26,
+      C is (N div 26),
       codesNumber([V|T], R, C).
 
    :- public(field/2).
@@ -166,7 +178,37 @@
       _Sheet_::row(Ref, Row),
       ::containsAll(row(Row), ['лекции','экзамены']).
 
-   :- use_module(library(lists), [subtract/3, member/2]).
+   :- public(headerStruct/1). % list of header columns. A15-(Name, URI)
+   headerStruct(HS):-
+      self(Self),
+      _Load_::headerStruct_(Self, HS).
+
+   :- public(buildHeaderStruct/0).
+   buildHeaderStruct:-
+      ::headerRow(HR1), !,
+      _Sheet_::row(HR1, R1),
+      HR2 is HR1 + 1,
+      _Sheet_::row(HR2, R2),
+      ref('A', HR2, StartRef), !,
+      ::bh(StartRef, [R1, R2], [], HS), !,
+      self(Self),
+      format('HS: ~w\n', [HS]),
+      _Load_::assertz(headerStruct_(Self,HS)).
+
+   :- protected(bh/4). % Forward processing
+   bh(RefL, [RowH, RowL], Prev, Result):-
+      RowL::cell(ref(RefL), CellL),
+      toUp(RefL,RefH),
+      RowH::cell(ref(RefH), CellH), !,
+      CellH::value(value(VH)),
+      CellL::value(value(VL)),
+      %(RefL='AA15' -> debugger::trace;true),
+      % debugger::trace,
+      toRight(RefL, NewRef), !,
+      write([RefL, NewRef]), nl,
+      bh(NewRef, [RowH, RowL], [RefL-hs(RefL-VL,RefH-VH)|Prev], Result).
+
+   bh(_, _ , Prev, Prev).
 
    :- protected(containsAll/2).
    containsAll(_, []).
@@ -210,20 +252,25 @@
 
    :- private(load0/0).
    load0:-
+      self(Self),
       forall(
-         (::sheet(Sheet),employee(undef,Sheet)::fullName(FullName)),
+         (::sheet(Sheet),employee(undef,Sheet,Self)::fullName(FullName)),
          (  Sheet = sheet(Name, Id, _, _),
             format('Emp: ~w:~w:~w\n',[FullName,Name,Id]),
-            ::assertz(employee_(employee(FullName,Sheet))))
+            ::assertz(employee_(employee(FullName,Sheet,Self))))
       ).
    :- dynamic(employee_/1).
    :- public(employee_/1).
 
    :- public(employee/2).
-   employee(Id, employee(FullName, Sheet)):-
+   employee(Id, employee(FullName, Sheet, Self)):-
       ::sheet(Id, Sheet),
       Sheet = sheet(_Name, Id, _Content, _WB),
+      self(Self),
       % debugg98нек er::trace,
-      employee(undef, Sheet)::fullName(FullName).
+      employee(undef, Sheet, Self)::fullName(FullName).
+
+   :- dynamic(headerStruct_/2).
+   :- public(headerStruct_/2).
 
 :- end_object.
