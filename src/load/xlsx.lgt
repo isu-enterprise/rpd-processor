@@ -105,6 +105,9 @@
    :- op(400, fx, /).
    :- op(200, fy, @).
 
+   :- public(ref/1).
+   ref(_Number_).
+
    :- public(cell/2).
    cell(ref(Atom), cell(Atom, Attrs, Content, _WB_)):-
       member(element(c, Attrs, Content), _Cells_),

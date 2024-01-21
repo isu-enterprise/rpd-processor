@@ -1,5 +1,79 @@
 :- set_prolog_flag(re_compile, true).
 
+:- use_module(library(semweb/rdf_db),
+              [rdf_save/2]).
+
+:- object(context(_Employee_), % Recodgnition context / sceraio parts.
+   imports(attributes)).
+
+   :- use_module(library(semweb/rdf11), [rdf/4,rdf_bnode/1,rdf_assert/4, rdf_is_iri/1,
+                                         rdf_retractall/4, rdf_create_bnode/1
+                                         ]).
+   :- public(graph/1).
+   graph(IRI):-
+      rdf_is_iri(IRI),
+      ::clear, % Clear state.
+      ::clear_attributes, % clear all attribute data.
+      ::set_attribute(graph, IRI).
+
+   :- public(asGraph/1).
+   asGraph(Graph):-
+      nonvar(Graph),
+      ::graph(Graph),
+      ::analyze.
+
+   :- public(clear/0).
+   clear:-!.
+
+   :- public(analyze/0).
+   analyze:-
+     ::header(HRef),
+     _Employee_::toUp(HRef, FieldTerm),
+     _Employee_::toRowRef(FieldTerm, FieldTermRow),
+     ::fields(0,FieldTermRow),
+     ::footer(HRef, FRef),
+     _Employee_::headerStruct(HS),
+     ::table(HRef, FRef). % Including ends
+
+   :- public(header/1).
+   header(HRef):-
+     _Employee_::headerRow(HRow),
+     _Employee_::scanAfter(HRow,'итого:', R1),
+     % debugger::trace,
+     _Employee_::toDown(R1, R2),
+     _Employee_::toRowRef(R2, HRef).
+
+   :- public(footer/2).
+   footer(HRef, FRef):-
+     _Employee_::scanAfter(HRef, 'итого по', H1),
+     _Employee_::toUp(R1,R2),
+     _Employee_::toRowRef(R2,FRef).
+
+   :- public(fields/2).
+   fields(S,E):-
+      forall(::cell(S,E, Cell),
+             ::field(C,
+                ['фио:'-teacherFullName,
+                 'должность:'-teacherPosition,
+                 'размер ставки:'-teacherAccupationPart])).
+
+   :- public(cellRef/3).
+   cell(StartRow, StartRow, Cell):- !,
+      Row = _Employee_::row(StartRow),
+      Row::cell(Cell),!.
+
+   cell(StartRow, EndRow, Cell):-
+      StartRow < EndRow,
+      ::cell(StartRow, StartRow, Cell).
+
+   cell(StartRow, EndRow, Cell):-
+      StartRow < EndRow,
+      SR is StartRow + 1,
+      ::cell(SR, EndRow, Cell).
+
+:- end_object.
+
+
 :- object(employee(_FullName_, _Sheet_, _Load_)).
    :- use_module(library(lists), [subtract/3, member/2, nth0/3, nth1/3]).
    :- use_module(library(option), [option/2]).
@@ -90,10 +164,20 @@
    :- public(toDown/2).
    toDown(Ref, DownRef):-
       ::splitRef(Ref, Atom, Number),
-      %debugger::trace,
       ::add(Number, 1, Number1),
       atom_concat(Atom, Number1, DownRef).
       % format('~w->~w\n',[Ref, RightRef]).
+
+   :- public(scanAfter/3).
+   scanAfter(StartRef, SubAtom, RowRef):-
+      _Sheet_::row(StartRef, Row), !,
+      % format('SCAN: ~w\n', [StartRef]),
+      (::containsAll(row(Row), [SubAtom]) ->
+         format('SCAN-FOUND: ~w\n', [StartRef]),
+         Row::(RowRef);
+         SR is StartRef + 1,
+         % format('SCAN-NOTFOUND: ~w -> ~w\n', [StartRef, SR]),
+         scanAfter(SR, SubAtom, RowRef)).
 
    :- public(ref/3).
    ref(Atom, Number, Ref):-
@@ -270,6 +354,22 @@
       includes(X, Part),!.
    includes([_|T], Part):-
       includes(T, Part).
+
+%   :- meta_predicate(semweb:rdf_db:rdf_save(*,*)).
+%   :- use_module(library(semweb/turtle), []).
+%   :- use_module(library(semweb/rdf_db), [rdf_save/2]).
+   :- public(asGraph/1).
+   asGraph(Graph):-
+      % create_object(
+      %    Context,
+      %    [extends(context)], [], []),
+      self(Self),
+      Context = context(Self),
+      Context::asGraph(Graph).
+
+   :- public(row/1).
+   row(Row):-
+      _Sheet_::row(Row).
 
 :- end_object.
 

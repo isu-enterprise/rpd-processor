@@ -18,15 +18,18 @@
    ]).
 
    :- initialization((
-      it_chair_2023_2024_b::load(all),
+      it_chair_2023_2024_b::load(fast),
       it_chair_2023_2024_b::list,
 %      it_chair_2023_2024_v::load,
 %      it_chair_2023_2024_v::list,
       it_chair_2023_2024_b::employee(18,E),
       % format('Emp: ~w\n', [S]),
-      E = employee(_Name,S,it_chair_2023_2024_b),
-      E::buildHeaderStruct,
-      E::headerStruct(HS),
+      E = employee(_Name,_S,it_chair_2023_2024_b),
+      % E::buildHeaderStruct,
+      % E::headerStruct(HS),
+      % E::asGraph(Graph),
+      E::asGraph('http://isu.ru/imit/it-chair/employee/fereferov-evgeny-sergeevich'),
+      format('Graph:~w\n',[Graph]),
 
       % S::dump,
       % S::row(HeaderRef, R1),
@@ -35,7 +38,7 @@
       % R2::dump,
 %      S::row(7, R3),
 %      R3::dump,
-      write("----------------- ok --------------\n"),
+      % write("----------------- ok --------------\n"),
       true
    )).
 

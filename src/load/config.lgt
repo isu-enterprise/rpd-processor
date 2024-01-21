@@ -3,7 +3,8 @@
    :- public([
       set_attribute/2,
       current_attribute/2,
-      del_attribute/1
+      del_attribute/1,
+      clear_attributes/0
       ]).
 :- end_protocol.
 
@@ -23,6 +24,10 @@
    del_attribute(Name):-
       ::attribute_(Name,_),!,
       ::retractall(attribute_(Name,_)).
+
+   clear_attributes:-
+      ::retractall(attribute_(_,_)).
+
 :- end_category.
 
 

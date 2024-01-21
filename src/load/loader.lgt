@@ -1,4 +1,6 @@
 :- set_prolog_flag(stack_limit, 8_147_483_648).
+:- set_prolog_flag(answer_write_options, [quoted(true), portray(true), max_depth(5), attributes(portray)]).
+:- set_prolog_flag(debugger_write_options, [quoted(true), portray(true), max_depth(5), attributes(portray)]).
 
 :- initialization((
      set_logtalk_flag(report, warnings)
