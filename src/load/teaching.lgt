@@ -27,49 +27,84 @@
 
    :- public(analyze/0).
    analyze:-
-     ::header(HRef),
-     _Employee_::toUp(HRef, FieldTerm),
+     ::header(_HeaderRow, HeaderBottom),
+     _Employee_::toUp(HeaderBottom, FieldTerm),
      _Employee_::toRowRef(FieldTerm, FieldTermRow),
-     ::fields(0,FieldTermRow),
-     ::footer(HRef, FRef),
+     ::fields(1, FieldTermRow),
+     _Employee_::toDown(HeaderBottom, TableTop),
+     ::footer(TableTop, FooterTop),
+     ::dump_attributes,
+     _Employee_::toUp(FooterTop, TableBottom),
+     _Employee_::buildHeaderStruct,
      _Employee_::headerStruct(HS),
-     ::table(HRef, FRef). % Including ends
+     ::scanTable(TableTop, TableBottom). % Including ends
 
-   :- public(header/1).
-   header(HRef):-
+   :- public(header/2).
+   header(HRow, HRef):-
      _Employee_::headerRow(HRow),
      _Employee_::scanAfter(HRow,'итого:', R1),
-     % debugger::trace,
-     _Employee_::toDown(R1, R2),
-     _Employee_::toRowRef(R2, HRef).
+     _Employee_::toRowRef(R1, HRef).
 
    :- public(footer/2).
    footer(HRef, FRef):-
-     _Employee_::scanAfter(HRef, 'итого по', H1),
-     _Employee_::toUp(R1,R2),
-     _Employee_::toRowRef(R2,FRef).
+     _Employee_::scanAfter(HRef, 'итого по', R1),
+     _Employee_::toRowRef(R1,FRef).
 
    :- public(fields/2).
    fields(S,E):-
       forall(::cell(S,E, Cell),
-             ::field(C,
+             ::field(Cell,
                 ['фио:'-teacherFullName,
                  'должность:'-teacherPosition,
                  'размер ставки:'-teacherAccupationPart])).
 
-   :- public(cellRef/3).
+   :- public(field/2).
+   field(_, []):-!.
+   field(Cell, [SubAtom-AttrName|T]):-
+      _Employee_::suffixInCell(SubAtom, Cell, Value1),
+      ::valueInCell(Cell, Value1),
+      ( _Employee_::emptyValue(Value1) ->
+        ::valueRightOf(Cell, Value)
+      ; Value = Value1 ), !,
+      ::set_attribute(AttrName, Value-Cell),
+      field(Cell, T).
+   field(Cell, [_|T]):-  % No refix found ...
+      field(Cell, T).
+
+   :- public(scanTable/2). % table seems a keyword?
+   scanTable(Top, Bottom):- % Scan from Top rowRef to Bottom one
+      !.
+
+   :- public(valueInCell/2).
+   valueInCell(Cell, Value):-
+      Cell::value(value(V)),
+      _Employee_::joinRuns(V, JV),
+      _Employee_::normaizeSpace(JV, Value).
+
+   :- public(valueRightOf/2).
+   valueRightOf(Cell, Value):- % find first value to the right of the current cell
+      Cell::ref(Ref),
+      _Employee_::toRight(Ref, RightRef),
+      _Employee_::toRowRef(RightRef, RowRef),
+      _Employee_::row(RowRef, Row),
+      Row::cell(ref(RightRef), RightCell),
+      ::valueInCell(RightCell, JVN),
+      ( _Employee_::emptyValue(JVN) ->
+        valueRightOf(RightCell, Value); Value = JVN).
+
+   :- public(cell/3).
    cell(StartRow, StartRow, Cell):- !,
-      Row = _Employee_::row(StartRow),
-      Row::cell(Cell),!.
+      _Employee_::row(StartRow, Row),
+      Row::cell(ref(_Ref), Cell),!.
 
    cell(StartRow, EndRow, Cell):-
       StartRow < EndRow,
-      ::cell(StartRow, StartRow, Cell).
+      cell(StartRow, StartRow, Cell).
 
    cell(StartRow, EndRow, Cell):-
       StartRow < EndRow,
       SR is StartRow + 1,
-      ::cell(SR, EndRow, Cell).
+      cell(SR, EndRow, Cell).
 
 :- end_object.
 
@@ -84,14 +119,18 @@
    fullName(FullName):-
       ::field('ФИО:', FullName), !.
 
+   :- public(suffixInCell/3).
+   suffixInCell(Prefix, Cell, Value):-
+      Cell::value(value([P|T])),
+      ::normaizeSpace(P,Prefix), !,
+      ::joinRuns(T,Value1),
+      ::normaizeSpace(Value1, Value).
+
    :- public(suffixOf/2).
    suffixOf(Prefix, Value):-
       _Sheet_::row(RowRef,Row),
       Row::cell(ref(Ref), Cell),
-      Cell::value(value([P|T])),
-      ::normaizeSpace(P,Prefix), !,
-      ::joinRuns(T,Value1),
-      ::normaizeSpace(Value1, Value2),
+      suffixInCell(Prefix, Cell, Value2),
       (::emptyValue(Value2) -> ::rightOf(ref(Ref, RowRef), Value);
        Value=Value2).
 
@@ -154,6 +193,9 @@
       % format('~w->~w\n',[Ref, RightRef]).
 
    :- public(toUp/2).
+   toUp(Ref, DownRef):-
+      number(Ref), !,
+      DownRef is Ref - 1.
    toUp(Ref, UpRef):-
       ::splitRef(Ref, Atom, Number),
       %debugger::trace,
@@ -163,10 +205,19 @@
 
    :- public(toDown/2).
    toDown(Ref, DownRef):-
+      number(Ref), !,
+      DownRef is Ref + 1.
+   toDown(Ref, DownRef):-
       ::splitRef(Ref, Atom, Number),
       ::add(Number, 1, Number1),
       atom_concat(Atom, Number1, DownRef).
       % format('~w->~w\n',[Ref, RightRef]).
+
+   :- public(toRowRef/2).
+   toRowRef(Ref, Ref):-
+      number(Ref),!.
+   toRowRef(Ref, RowRef):-
+      splitRef(Ref, _, RowRef).
 
    :- public(scanAfter/3).
    scanAfter(StartRef, SubAtom, RowRef):-
@@ -174,7 +225,7 @@
       % format('SCAN: ~w\n', [StartRef]),
       (::containsAll(row(Row), [SubAtom]) ->
          format('SCAN-FOUND: ~w\n', [StartRef]),
-         Row::(RowRef);
+         Row::ref(RowRef);
          SR is StartRef + 1,
          % format('SCAN-NOTFOUND: ~w -> ~w\n', [StartRef, SR]),
          scanAfter(SR, SubAtom, RowRef)).
@@ -367,9 +418,9 @@
       Context = context(Self),
       Context::asGraph(Graph).
 
-   :- public(row/1).
-   row(Row):-
-      _Sheet_::row(Row).
+   :- public(row/2).
+   row(Number, Row):-
+      _Sheet_::row(Number, Row).
 
 :- end_object.
 

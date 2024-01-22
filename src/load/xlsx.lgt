@@ -155,7 +155,7 @@
    row(Number, row(Number, Attrs, Cells, _WB_)):-
       self(Self),
       \+ _WB_::row_(Self, row(Number, Attrs, Cells)), !,
-      ::loadRows(Self), !,
+      ::loadRows, !,
       row(Number, row(Number, Attrs, Cells, _WB_)).
 
    row(Number, row(Number, Attrs, Cells, _WB_)):-
@@ -163,8 +163,9 @@
       _WB_::row_(Self, row(Number, Attrs, Cells)),
       self(Self).
 
-   :- private(loadRows/1).
-   loadRows(Sheet):-
+   :- public(loadRows/0).
+   loadRows:-
+      self(Sheet),
       forall(
          xpath(_XML_, //row, element(row, Attrs, Cells)),
          (

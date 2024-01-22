@@ -4,7 +4,8 @@
       set_attribute/2,
       current_attribute/2,
       del_attribute/1,
-      clear_attributes/0
+      clear_attributes/0,
+      dump_attributes/0
       ]).
 :- end_protocol.
 
@@ -27,6 +28,10 @@
 
    clear_attributes:-
       ::retractall(attribute_(_,_)).
+
+   dump_attributes:-
+      forall(current_attribute(Name, Value),
+         format('~w=|~w|\n',[Name, Value])).
 
 :- end_category.
 
