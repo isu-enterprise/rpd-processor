@@ -57,30 +57,36 @@
    fields(S,E):-
       forall(::cell(S,E, Cell),
              ::field(Cell,
-                ['кафедра:'-chairName,
-                 'фио:'-teacherFullName,
-                 'должность:'-ext(teacherPosition,[right,down]),
-                 'размер ставки:'-teacherAccupationPart])).
+                ['кафедра:'-chair/label,
+                 'фио:'-teacher/full/name,
+                 'должность:'-ext(teacher/position,[right,down]),
+                 'размер ставки:'-teacher/rate/share])).
 
    :- public(field/2).
    field(_, []):-!.
    field(Cell, [SubAtom-ext(AttrName,Directions)|T]):-
       _Employee_::suffixInCell(SubAtom, Cell, _RightValue), !,
       forall(member(Dir, Directions),
-         (   atom_concat(AttrName, Dir, AttrNameDir),
-             fieldValue(Cell, Dir, AttrNameDir))).
+         (
+             %atom_concat(AttrName, '-', AttrNameDash),
+             %atom_concat(AttrNameDash, Dir, AttrNameDir),
+             AttrNameDir=AttrName-Dir,
+             fieldValue(Cell, Dir, AttrNameDir))),
+      field(Cell, T).
 
    field(Cell, [SubAtom-AttrName|T]):-
-      _Employee_::suffixInCell(SubAtom, Cell, Value1),
-      ::fieldValue(Cell, right, SubAtom-AttrName).
+      _Employee_::suffixInCell(SubAtom, Cell, _Value),
+      %debugger::trace,
+      ::fieldValue(Cell, right, AttrName),
+      field(Cell, T).
    field(Cell, [_|T]):-  % No refix found ...
       field(Cell, T).
 
    :- public(fieldValue/3).
    fieldValue(Cell, right, AttrName):-
-      ::valueInCell(Cell, Value1),
+      ::valueInCell(Cell, noprefix(Value1)),
       ( _Employee_::emptyValue(Value1) ->
-        ::valueRightOf(Cell, Value)
+        ::valueRightOf(Cell, noprefix(Value))
       ; Value = Value1 ), !,
       ::set_attribute(AttrName, Value-Cell).
    fieldValue(Cell, down, AttrName):-
@@ -92,32 +98,47 @@
       !.
 
    :- public(valueInCell/2).
-   valueInCell(Cell, Value):-
-      Cell::value(value([_|V])),
-      _Employee_::joinRuns(V, JV),
-      _Employee_::normaizeSpace(JV, Value).
+   valueInCell(Cell, generic(Value)):-
+      Cell::value(value(V1)), !,
+      _Employee_::joinRuns(V1, V),
+      _Employee_::normaizeSpace(V, Value).
+
+   valueInCell(Cell, noprefix(Value)):-
+      Cell::value(value([_|V1])), !,
+      _Employee_::joinRuns(V1, V),
+      _Employee_::normaizeSpace(V, Value).
 
    :- public(valueRightOf/2).
-   valueRightOf(Cell, Value):- % find first value to the right of the current cell
-      Cell::ref(Ref),
-      _Employee_::toDown(Ref, RightRef),
-      _Employee_::toRowRef(RightRef, RowRef),
-      _Employee_::row(RowRef, Row),
-      Row::cell(ref(RightRef), RightCell),
-      ::valueInCell(RightCell, JVN),
-      ( _Employee_::emptyValue(JVN) ->
-        valueDownOf(RightCell, Value); Value = JVN).
-
-   :- public(valueDownOf/2).
-   valueRightOf(Cell, Value):- % find first value to the right of the current cell
+   valueRightOf(Cell, noprefix(Value)):- !, % find first value to the right of the current cell
       Cell::ref(Ref),
       _Employee_::toRight(Ref, RightRef),
       _Employee_::toRowRef(RightRef, RowRef),
       _Employee_::row(RowRef, Row),
       Row::cell(ref(RightRef), RightCell),
-      ::valueInCell(RightCell, JVN),
+      ::valueInCell(RightCell, noprefix(JVN)),
       ( _Employee_::emptyValue(JVN) ->
-        valueRightOf(RightCell, Value); Value = JVN).
+        valueRightOf(RightCell, generic(Value)); Value = JVN).
+
+   valueRightOf(Cell, generic(Value)):- % find first value to the right of the current cell
+      Cell::ref(Ref),
+      _Employee_::toRight(Ref, RightRef),
+      _Employee_::toRowRef(RightRef, RowRef),
+      _Employee_::row(RowRef, Row),
+      Row::cell(ref(RightRef), RightCell),
+      ::valueInCell(RightCell, generic(JVN)),
+      ( _Employee_::emptyValue(JVN) ->
+        valueRightOf(RightCell, generic(Value)); Value = JVN).
+
+   :- public(valueDownOf/2).
+   valueDownOf(Cell, Value):- % find first value to the right of the current cell
+      Cell::ref(Ref),
+      _Employee_::toDown(Ref, DownRef),
+      _Employee_::toRowRef(DownRef, RowRef),
+      _Employee_::row(RowRef, Row),
+      Row::cell(ref(DownRef), DownCell),
+      ::valueInCell(DownCell, generic(JVN)),
+      ( _Employee_::emptyValue(JVN) ->
+        valueDownOf(DownCell, Value); Value = JVN).
 
    :- public(cell/3).
    cell(StartRow, StartRow, Cell):- !,
