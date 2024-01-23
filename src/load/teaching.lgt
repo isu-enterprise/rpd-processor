@@ -36,7 +36,7 @@
      ::dump_attributes,
      _Employee_::toUp(FooterTop, TableBottom),
      _Employee_::buildHeaderStruct,
-     _Employee_::headerStruct(HS),
+     % _Employee_::headerStruct(_HS),
      ::scanTable(TableTop, TableBottom). % Including ends
 
    :- public(header/2).
@@ -54,7 +54,8 @@
    fields(S,E):-
       forall(::cell(S,E, Cell),
              ::field(Cell,
-                ['фио:'-teacherFullName,
+                ['кафедра:'-chairName,
+                 'фио:'-teacherFullName,
                  'должность:'-teacherPosition,
                  'размер ставки:'-teacherAccupationPart])).
 
@@ -166,7 +167,7 @@
       ::joinRuns(RightValue,Value2),
       ::normaizeSpace(Value2, Value3),
       (::emptyValue(Value3) ->
-       ::rightOf(ref(RightRef, RowRef), Value);
+       rightOf(ref(RightRef, RowRef), Value);
        Value=Value3).
 
    rightOf(prefix(Prefix), Value):-
@@ -174,7 +175,7 @@
       Row::cell(ref(Ref), Cell),
       Cell::value(value(Value1)),
       ::normaizeSpace(Value1,Prefix), !,
-      ::rightOf(ref(Ref, RowRef), Value).
+      rightOf(ref(Ref, RowRef), Value).
 
    :- public(toRight/2).
    toRight(Ref, RightRef):-
@@ -348,7 +349,7 @@
 
    :- private(refineHierarchy/2).
    refineHierarchy([],[]).
-   refineHierarchy([Ref-[R1-undef|TT]|T], R):-!,
+   refineHierarchy([Ref-[_-undef|TT]|T], R):-!,
       refineHierarchy([Ref-TT|T], R).
    refineHierarchy([Ref-[R1-Value,R2-undef|TT]|T], R):-!,
       upperValue(Ref, R2,T, Found),
@@ -390,7 +391,7 @@
       Cell::value(value(Val1)),
       subtract(Elems, [E], Els1),
       ::includes(Val1,E),
-      ::containsAll(row(Row), Els1).
+      containsAll(row(Row), Els1).
 
    :- public(includes/2).
    includes(undef, _):-!,false.

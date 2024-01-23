@@ -280,7 +280,7 @@
    unref(ValueRef, Value):-
       parseRefs, !,
       % debugger::trace,
-      ::unref(ValueRef, Value).
+      unref(ValueRef, Value).
 
    :- protected(parseRefs/0).
    parseRefs:-
