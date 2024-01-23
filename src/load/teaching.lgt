@@ -9,6 +9,9 @@
    :- use_module(library(semweb/rdf11), [rdf/4,rdf_bnode/1,rdf_assert/4, rdf_is_iri/1,
                                          rdf_retractall/4, rdf_create_bnode/1
                                          ]).
+   :- use_module(library(lists), [subtract/3, member/2, nth0/3, nth1/3]).
+   :- use_module(library(option), [option/2]).
+
    :- public(graph/1).
    graph(IRI):-
       rdf_is_iri(IRI),
@@ -36,8 +39,8 @@
      ::dump_attributes,
      _Employee_::toUp(FooterTop, TableBottom),
      _Employee_::buildHeaderStruct,
-     % _Employee_::headerStruct(_HS),
-     ::scanTable(TableTop, TableBottom). % Including ends
+     _Employee_::headerStruct(HS),
+     ::scanTable(HS, TableTop, TableBottom). % Including ends
 
    :- public(header/2).
    header(HRow, HRef):-
@@ -56,33 +59,56 @@
              ::field(Cell,
                 ['кафедра:'-chairName,
                  'фио:'-teacherFullName,
-                 'должность:'-teacherPosition,
+                 'должность:'-ext(teacherPosition,[right,down]),
                  'размер ставки:'-teacherAccupationPart])).
 
    :- public(field/2).
    field(_, []):-!.
+   field(Cell, [SubAtom-ext(AttrName,Directions)|T]):-
+      _Employee_::suffixInCell(SubAtom, Cell, _RightValue), !,
+      forall(member(Dir, Directions),
+         (   atom_concat(AttrName, Dir, AttrNameDir),
+             fieldValue(Cell, Dir, AttrNameDir))).
+
    field(Cell, [SubAtom-AttrName|T]):-
       _Employee_::suffixInCell(SubAtom, Cell, Value1),
+      ::fieldValue(Cell, right, SubAtom-AttrName).
+   field(Cell, [_|T]):-  % No refix found ...
+      field(Cell, T).
+
+   :- public(fieldValue/3).
+   fieldValue(Cell, right, AttrName):-
       ::valueInCell(Cell, Value1),
       ( _Employee_::emptyValue(Value1) ->
         ::valueRightOf(Cell, Value)
       ; Value = Value1 ), !,
-      ::set_attribute(AttrName, Value-Cell),
-      field(Cell, T).
-   field(Cell, [_|T]):-  % No refix found ...
-      field(Cell, T).
+      ::set_attribute(AttrName, Value-Cell).
+   fieldValue(Cell, down, AttrName):-
+      ::valueDownOf(Cell, Value),  % Ignore values to the right of the prefix
+      ::set_attribute(AttrName, Value-Cell).
 
-   :- public(scanTable/2). % table seems a keyword?
-   scanTable(Top, Bottom):- % Scan from Top rowRef to Bottom one
+   :- public(scanTable/3). % table seems a keyword?
+   scanTable(HeaderStruct, Top, Bottom):- % Scan from Top rowRef to Bottom one
       !.
 
    :- public(valueInCell/2).
    valueInCell(Cell, Value):-
-      Cell::value(value(V)),
+      Cell::value(value([_|V])),
       _Employee_::joinRuns(V, JV),
       _Employee_::normaizeSpace(JV, Value).
 
    :- public(valueRightOf/2).
+   valueRightOf(Cell, Value):- % find first value to the right of the current cell
+      Cell::ref(Ref),
+      _Employee_::toDown(Ref, RightRef),
+      _Employee_::toRowRef(RightRef, RowRef),
+      _Employee_::row(RowRef, Row),
+      Row::cell(ref(RightRef), RightCell),
+      ::valueInCell(RightCell, JVN),
+      ( _Employee_::emptyValue(JVN) ->
+        valueDownOf(RightCell, Value); Value = JVN).
+
+   :- public(valueDownOf/2).
    valueRightOf(Cell, Value):- % find first value to the right of the current cell
       Cell::ref(Ref),
       _Employee_::toRight(Ref, RightRef),
@@ -121,9 +147,10 @@
       ::field('ФИО:', FullName), !.
 
    :- public(suffixInCell/3).
-   suffixInCell(Prefix, Cell, Value):-
+   suffixInCell(Prefix, Cell, Value):-  % Prefix = the stripped first value of run list in a cell
       Cell::value(value([P|T])),
-      ::normaizeSpace(P,Prefix), !,
+      ::normaizeSpace(P,PN),
+      downcase_atom(PN, Prefix), !,
       ::joinRuns(T,Value1),
       ::normaizeSpace(Value1, Value).
 
@@ -330,7 +357,7 @@
       refineHierarchy(HS1,HSE),
       reduceHeaderStructure(HSE,HS),
       self(Self),
-      format('HS: ~w\n', [HS]),
+      % format('HS: ~w\n', [HS]),
       _Load_::assertz(headerStruct_(Self,HS)).
 
    :- protected(reduceHeaderStructure/2).

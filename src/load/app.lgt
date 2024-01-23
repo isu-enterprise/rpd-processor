@@ -32,7 +32,7 @@
       % E::asGraph(Graph),
       Graph='http://isu.ru/imit/it-chair/employee/fereferov-evgeny-sergeevich',
       E::asGraph(Graph),
-      format('Graph:~w\n',[]),
+      format('Graph:~w\n',[Graph]),
 
       % S::dump,
       % S::row(HeaderRef, R1),
