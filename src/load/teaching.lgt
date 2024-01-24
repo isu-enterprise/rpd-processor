@@ -57,24 +57,24 @@
    fields(S,E):-
       forall(::cell(S,E, Cell),
              ::field(Cell,
-                ['кафедра:'-chair/label,
-                 'фио:'-teacher/full/name,
-                 'должность:'-ext(teacher/position,[right,down]),
-                 'размер ставки:'-teacher/rate/share])).
+                ['кафедра:'=chair/label,
+                 'фио:'=teacher/full/name,
+                 'должность:'=ext(teacher/position,[right,down]),
+                 'размер ставки:'=teacher/rate/share])).
 
    :- public(field/2).
    field(_, []):-!.
-   field(Cell, [SubAtom-ext(AttrName,Directions)|T]):-
+   field(Cell, [SubAtom=ext(AttrName,Directions)|T]):-
       _Employee_::suffixInCell(SubAtom, Cell, _RightValue), !,
       forall(member(Dir, Directions),
          (
              %atom_concat(AttrName, '-', AttrNameDash),
              %atom_concat(AttrNameDash, Dir, AttrNameDir),
-             AttrNameDir=AttrName-Dir,
+             AttrNameDir=(AttrName=Dir),
              fieldValue(Cell, Dir, AttrNameDir))),
       field(Cell, T).
 
-   field(Cell, [SubAtom-AttrName|T]):-
+   field(Cell, [SubAtom=AttrName|T]):-
       _Employee_::suffixInCell(SubAtom, Cell, _Value),
       %debugger::trace,
       ::fieldValue(Cell, right, AttrName),
@@ -83,18 +83,30 @@
       field(Cell, T).
 
    :- public(fieldValue/3).
+   % TODO Split value
    fieldValue(Cell, right, AttrName):-
       ::valueInCell(Cell, noprefix(Value1)),
       ( _Employee_::emptyValue(Value1) ->
         ::valueRightOf(Cell, noprefix(Value))
       ; Value = Value1 ), !,
-      ::set_attribute(AttrName, Value-Cell).
+      ::set_attribute(AttrName, Value=Cell).
    fieldValue(Cell, down, AttrName):-
       ::valueDownOf(Cell, Value),  % Ignore values to the right of the prefix
-      ::set_attribute(AttrName, Value-Cell).
+      ::set_attribute(AttrName, Value=Cell).
 
    :- public(scanTable/3). % table seems a keyword?
    scanTable(HeaderStruct, Top, Bottom):- % Scan from Top rowRef to Bottom one
+      format('HS:~w\n',[HeaderStruct]),
+      forall(
+         (
+            ::cell(Top, Bottom, Cell),
+            Cell::ref(Ref),
+            _Employee_::toColRef(Ref, ColRef),
+            debugger::trace,
+            option(ColRef=_, HeaderStruct)
+         ),
+         format("Cell: ~w\n",[Ref])
+      ),
       !.
 
    :- public(valueInCell/2).
@@ -140,19 +152,21 @@
       ( _Employee_::emptyValue(JVN) ->
         valueDownOf(DownCell, Value); Value = JVN).
 
-   :- public(cell/3).
-   cell(StartRow, StartRow, Cell):- !,
-      _Employee_::row(StartRow, Row),
-      Row::cell(ref(_Ref), Cell),!.
-
-   cell(StartRow, EndRow, Cell):-
+   :- public(rows/3).
+   rows(StartRow, StartRow, Row):-!,
+      _Employee_::row(StartRow, Row).
+   rows(StartRow, EndRow, Row):-
       StartRow < EndRow,
-      cell(StartRow, StartRow, Cell).
-
-   cell(StartRow, EndRow, Cell):-
+      rows(StartRow, StartRow, Row).
+   rows(StartRow, EndRow, Row):-
       StartRow < EndRow,
       SR is StartRow + 1,
-      cell(SR, EndRow, Cell).
+      rows(SR, StartRow, Row).
+
+   :- public(cell/3).
+   cell(StartRow, EndRow, Cell):-
+      ::rows(StartRow, EndRow, Row),
+      Row::cell(ref(_Ref), Cell).
 
 :- end_object.
 
@@ -267,6 +281,10 @@
       number(Ref),!.
    toRowRef(Ref, RowRef):-
       splitRef(Ref, _, RowRef).
+
+   :- public(toColRef/2).
+   toColRef(Ref, Atom):-
+      splitRef(Ref, Atom, _).
 
    :- public(scanAfter/3).
    scanAfter(StartRef, SubAtom, RowRef):-
@@ -392,29 +410,29 @@
 
    :- private(reduceList/2).
    reduceList([], []):-!.
-   reduceList([_-V|T],[V|T1]):-
+   reduceList([_=V|T],[V|T1]):-
       reduceList(T,T1).
 
    :- private(refineHierarchy/2).
    refineHierarchy([],[]).
-   refineHierarchy([Ref-[_-undef|TT]|T], R):-!,
-      refineHierarchy([Ref-TT|T], R).
-   refineHierarchy([Ref-[R1-Value,R2-undef|TT]|T], R):-!,
+   refineHierarchy([Ref=[(_=undef)|TT]|T], R):-!,
+      refineHierarchy([Ref=TT|T], R).
+   refineHierarchy([Ref=[(R1=Value),(R2=undef)|TT]|T], R):-!,
       upperValue(Ref, R2,T, Found),
-      (Found = RN-ValueN ->
-        refineHierarchy([Ref-[R1-Value,RN-ValueN|TT]|T], R);
-        refineHierarchy([Ref-[R1-Value|TT]|T], R)).
+      (Found = (RN=ValueN) ->
+        refineHierarchy([Ref=[(R1=Value),(RN=ValueN)|TT]|T], R);
+        refineHierarchy([Ref=[(R1=Value)|TT]|T], R)).
    refineHierarchy([X|T], [X|T1]):-!,
       refineHierarchy(T, T1).
 
    :- protected(upperValue/4).
    upperValue(_, _, [], undef).
-   upperValue(Ref, R, [RefL-L|T], Value):-
+   upperValue(Ref, R, [RefL=L|T], Value):-
       toLeft(R, RL),
       toLeft(Ref, RefL), !,
-      member(RL-V,L),
+      member(RL=V,L),
       (V = undef -> upperValue(RefL, RL, T, Value);
-       Value=RL-V).
+       Value=(RL=V)).
    upperValue(_, _, _, undef).
 
    :- protected(bh/4). % Forward processing
@@ -428,7 +446,7 @@
       % debugger::trace,
       toRight(RefL, NewRef), !,
       % write([RefL, NewRef]), nl,
-      bh(NewRef, [RowH, RowL], [RefL-[RefL-VL,RefH-VH]|Prev], Result).
+      bh(NewRef, [RowH, RowL], [RefL=[RefL=VL,RefH=VH]|Prev], Result).
 
    bh(_, _ , Prev, Prev).
 
