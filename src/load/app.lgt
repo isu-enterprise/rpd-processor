@@ -25,7 +25,6 @@
       it_chair_2023_2024_b::employee(18,E),
       % format('Emp: ~w\n', [S]),
       E = employee(_Name,S,it_chair_2023_2024_b),
-      S::loadRows,
       %E::buildHeaderStruct,
       %E::headerStruct(HS),
       %write(HS), nl, halt,

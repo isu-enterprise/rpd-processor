@@ -30,16 +30,16 @@
 
    :- public(analyze/0).
    analyze:-
-     ::header(_HeaderRow, HeaderBottom),
-     _Employee_::toUp(HeaderBottom, FieldTerm),
+     ::header(_HeaderRow, HeaderBottom), !,
+     _Employee_::toUp(HeaderBottom, FieldTerm), !,
      _Employee_::toRowRef(FieldTerm, FieldTermRow),
-     ::fields(1, FieldTermRow),
+     ::fields(1, FieldTermRow), !,
+     ::dump_attributes, !,
      _Employee_::toDown(HeaderBottom, TableTop),
-     ::footer(TableTop, FooterTop),
-     ::dump_attributes,
+     ::footer(TableTop, FooterTop), !,
      _Employee_::toUp(FooterTop, TableBottom),
-     _Employee_::buildHeaderStruct,
-     _Employee_::headerStruct(HS),
+     _Employee_::buildHeaderStruct, !,
+     _Employee_::headerStruct(HS), !,
      ::scanTable(HS, TableTop, TableBottom). % Including ends
 
    :- public(header/2).
@@ -55,7 +55,8 @@
 
    :- public(fields/2).
    fields(S,E):-
-      forall(::cell(S,E, Cell),
+      forall(
+             ::cell(S,E, Cell),
              ::field(Cell,
                 ['кафедра:'=chair/label,
                  'фио:'=teacher/full/name,
@@ -70,13 +71,12 @@
          (
              %atom_concat(AttrName, '-', AttrNameDash),
              %atom_concat(AttrNameDash, Dir, AttrNameDir),
-             AttrNameDir=(AttrName=Dir),
+             AttrNameDir=(AttrName/Dir),
              fieldValue(Cell, Dir, AttrNameDir))),
       field(Cell, T).
 
    field(Cell, [SubAtom=AttrName|T]):-
       _Employee_::suffixInCell(SubAtom, Cell, _Value),
-      %debugger::trace,
       ::fieldValue(Cell, right, AttrName),
       field(Cell, T).
    field(Cell, [_|T]):-  % No refix found ...
@@ -102,10 +102,9 @@
             ::cell(Top, Bottom, Cell),
             Cell::ref(Ref),
             _Employee_::toColRef(Ref, ColRef),
-            debugger::trace,
-            option(ColRef=_, HeaderStruct)
+            member(ColRef=_, HeaderStruct)
          ),
-         format("Cell: ~w\n",[Ref])
+         format("Cell (SCAN TABLE): ~w ~w\n",[Ref, ColRef])
       ),
       !.
 
@@ -153,6 +152,7 @@
         valueDownOf(DownCell, Value); Value = JVN).
 
    :- public(rows/3).
+   % rows(StartRow, StartRow, Row):-
    rows(StartRow, StartRow, Row):-!,
       _Employee_::row(StartRow, Row).
    rows(StartRow, EndRow, Row):-
@@ -161,11 +161,12 @@
    rows(StartRow, EndRow, Row):-
       StartRow < EndRow,
       SR is StartRow + 1,
-      rows(SR, StartRow, Row).
+      rows(SR, EndRow, Row).
 
    :- public(cell/3).
    cell(StartRow, EndRow, Cell):-
       ::rows(StartRow, EndRow, Row),
+      format('ROWS: ~w ~w ~n',[StartRow, EndRow]),
       Row::cell(ref(_Ref), Cell).
 
 :- end_object.
@@ -179,7 +180,7 @@
    fullName(_FullName_):-
       _FullName_ \= undef, !.
    fullName(FullName):-
-      ::field('ФИО:', FullName), !.
+      ::field('фио:', FullName), !.
 
    :- public(suffixInCell/3).
    suffixInCell(Prefix, Cell, Value):-  % Prefix = the stripped first value of run list in a cell
@@ -219,7 +220,6 @@
    :- public(rightOf/2).
    rightOf(ref(CellRef, RowRef), Value):- !,
       _Sheet_::row(RowRef, Row),
-      % debugger::trace,
       ::toRight(CellRef, RightRef),
       % format('TR: ~w\n', [RightRef]),
       Row::cell(ref(RightRef), RightCell),
@@ -242,7 +242,6 @@
    :- public(toRight/2).
    toRight(Ref, RightRef):-
       ::splitRef(Ref, Atom, Number),
-      %debugger::trace,
       ::add(Atom, 1, Atom1),
       atom_concat(Atom1, Number, RightRef).
       % format('~w->~w\n',[Ref, RightRef]).
@@ -250,7 +249,6 @@
    :- public(toLeft/2).
    toLeft(Ref, LeftRef):-
       ::splitRef(Ref, Atom, Number),
-      %debugger::trace,
       ::add(Atom, -1, Atom1),
       atom_concat(Atom1, Number, LeftRef).
       % format('~w->~w\n',[Ref, RightRef]).
@@ -261,7 +259,6 @@
       DownRef is Ref - 1.
    toUp(Ref, UpRef):-
       ::splitRef(Ref, Atom, Number),
-      %debugger::trace,
       ::add(Number, -1, Number1),
       atom_concat(Atom, Number1, UpRef).
       % format('~w->~w\n',[Ref, RightRef]).
@@ -289,12 +286,10 @@
    :- public(scanAfter/3).
    scanAfter(StartRef, SubAtom, RowRef):-
       _Sheet_::row(StartRef, Row), !,
-      % format('SCAN: ~w\n', [StartRef]),
       (::containsAll(row(Row), [SubAtom]) ->
-         format('SCAN-FOUND: ~w\n', [StartRef]),
+         format('SCAN-AFTER-FOUND: ~w\n', [StartRef]),
          Row::ref(RowRef);
          SR is StartRef + 1,
-         % format('SCAN-NOTFOUND: ~w -> ~w\n', [StartRef, SR]),
          scanAfter(SR, SubAtom, RowRef)).
 
    :- public(ref/3).
@@ -312,7 +307,6 @@
       atom(Atom), !,
       atom_codes(Atom, Codes), !,
       codesNumber(1, Codes, Number), !,
-      % debugger::trace,
       N1 is Number + V,
       codesNumber([], Codes1, N1), !,
       atom_codes(Atom1, Codes1), !.
@@ -323,8 +317,6 @@
       nonvar(X), !,
       NV is PV * 26 + (X-65),  % A = 0
       codesNumber(NV, T, N).
-%   codesNumber([], [65], 0):-!.
-%   codesNumber(T, T, 0):-!.
    codesNumber(T, T, N):-
       N = 1,!.
    codesNumber(T, [V|T], N):-
@@ -401,8 +393,8 @@
 
    :- protected(reduceHeaderStructure/2).
    reduceHeaderStructure([], []):-!.
-   reduceHeaderStructure([Ref-L|T],
-                         [Atom-RL|T1]):-
+   reduceHeaderStructure([Ref=L|T],
+                         [Atom=RL|T1]):-
       splitRef(Ref, Atom, _),
       reduceList(L,RLS),
       ::normaizeSpace(RLS,RL),
@@ -443,7 +435,6 @@
       CellH::value(value(VH)),
       CellL::value(value(VL)),
       %(RefL='AA15' -> debugger::trace;true),
-      % debugger::trace,
       toRight(RefL, NewRef), !,
       % write([RefL, NewRef]), nl,
       bh(NewRef, [RowH, RowL], [RefL=[RefL=VL,RefH=VH]|Prev], Result).
@@ -523,7 +514,6 @@
       ::sheet(Id, Sheet),
       Sheet = sheet(_Name, Id, _Content, _WB),
       self(Self),
-      % debugg98нек er::trace,
       employee(undef, Sheet, Self)::fullName(FullName).
 
    :- dynamic(headerStruct_/2).
