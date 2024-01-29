@@ -162,7 +162,7 @@
 
    :- public(loadRows/0).
    loadRows:-
-      self(Sheet),
+      % self(Sheet),
       forall(
          xpath(_XML_, //row, element(row, Attrs, Cells)),
          (

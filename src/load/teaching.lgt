@@ -60,6 +60,7 @@
              ::field(Cell,
                 ['кафедра:'=chair/label,
                  'фио:'=teacher/full/name,
+                 'преподавателя на'=load/years,
                  'должность:'=ext(teacher/position,[right,down]),
                  'размер ставки:'=teacher/rate/share])).
 
@@ -98,15 +99,69 @@
    scanTable(HeaderStruct, Top, Bottom):- % Scan from Top rowRef to Bottom one
       format('HS:~w\n',[HeaderStruct]),
       forall(
+         ::rows(Top, Bottom, Row),
          (
-            ::cell(Top, Bottom, Cell),
-            Cell::ref(Ref),
-            _Employee_::toColRef(Ref, ColRef),
-            member(ColRef=_, HeaderStruct)
-         ),
-         format("Cell (SCAN TABLE): ~w ~w\n",[Ref, ColRef])
+            findall(NewValue,
+               (
+                  Row::cell(ref(Ref), Cell),
+                  Cell::value(value(Value)),
+                  \+ _Employee_::emptyValue(value(Value)),
+                  % Cell::ref(Ref),
+                  _Employee_::toColRef(Ref, ColRef),
+                  member(ColRef=Definition, HeaderStruct), % Then
+                  ::processStructuredValue(ColRef, Value, Definition, NewValue)
+               ), Rels),
+            format('COLLECTED: ~w\n',[Rels])
+         )
       ),
       !.
+
+   :- protected(processStructuredValue/4).
+   processStructuredValue(ColRef, Value, Definition, NewValue):-
+      ::encodeKD(Elems, Options),
+      ::containsAll(Definition, Elems), !,
+      !,
+      ::interpreteOptions(ColRef, Value, Options, NewValue).
+   processStructuredValue(ColRef, Value, Definition, ColRef=Value):-
+      format("Cell (SCAN TABLE): ~w = ~w (~w)\n",[ColRef, Value, Definition]).
+
+   :- protected(interpreteOptions/4).
+   interpreteOptions(_, Value, [], Value):-!.
+   interpreteOptions(ColRef, Value, [Option|Os], NVal):-
+      ::interpreteOption(ColRef, Value, Option, NewValue), !,
+      ::interpreteOptions(ColRef, NewValue, Os, NVal).
+
+   :- protected(interpreteOption/4).
+   interpreteOption(ColRef, Value, convert(P), NewValue):-!,
+      call(P, ColRef, Value, NewValue).
+   interpreteOption(ColRef, Value, exec(P), Value):-!,
+      call(P, ColRef, Value).
+
+   :- protected(encodeKD/2).
+   encodeKD(['курс','семестр'], [convert(::id), exec(::writeNl)]).
+   encodeKD(['препод','код', дисципл, учебн, план], [exec(::ignored)]).
+
+
+   :- protected(id/3).
+   id(_, A,A).
+
+   :- protected(writeNl/2).
+   writeNl(ColRef, Value):-
+      format('DEBUG write: ~w = ~w\n',[ColRef, Value]).
+
+   :- protected(ignored/2).
+   ignored(ColRef, Value):-
+      format('IGNORING: ~w = ~w\n',[ColRef, Value]).
+
+   :- protected(containsAll/2).
+   containsAll(_, []):-!.
+   containsAll([X|T],Elems):-
+      downcase_atom(X, XL),
+      subtract(Elems, [E], Els),
+      sub_atom(XL,_,_,_,E), !,
+      containsAll([X|T],Els).
+   containsAll([_|T],Elems):-
+      containsAll(T,Elems).
 
    :- public(valueInCell/2).
    valueInCell(Cell, generic(Value)):-
@@ -166,7 +221,7 @@
    :- public(cell/3).
    cell(StartRow, EndRow, Cell):-
       ::rows(StartRow, EndRow, Row),
-      format('ROWS: ~w ~w ~n',[StartRow, EndRow]),
+      % format('ROWS: ~w ~w ~n',[StartRow, EndRow]),
       Row::cell(ref(_Ref), Cell).
 
 :- end_object.
@@ -385,8 +440,9 @@
       _Sheet_::row(HR2, R2),
       ref('A', HR2, StartRef), !,
       ::bh(StartRef, [R1, R2], [], HS1), !,
-      refineHierarchy(HS1,HSE),
-      reduceHeaderStructure(HSE,HS),
+      ::refineHierarchy(HS1,HSE),
+      ::reduceHeaderStructure(HSE,HSS1),
+      ::canonifyStrings(HSS1, HS),
       self(Self),
       % format('HS: ~w\n', [HS]),
       _Load_::assertz(headerStruct_(Self,HS)).
@@ -399,6 +455,15 @@
       reduceList(L,RLS),
       ::normaizeSpace(RLS,RL),
       reduceHeaderStructure(T, T1).
+
+   :- protected(canonifyStrings/2).
+   canonifyStrings([], []):-!.
+   canonifyStrings([Ref=V|T],[Ref=CV|CT]):-
+      canonifyStrings(V, CV), !,
+      canonifyStrings(T, CT).
+   canonifyStrings([Atom|T], [CAtom|CT]):-
+      downcase_atom(Atom, CAtom), !,
+      canonifyStrings(T,CT).
 
    :- private(reduceList/2).
    reduceList([], []):-!.
@@ -441,6 +506,7 @@
 
    bh(_, _ , Prev, Prev).
 
+   :- use_module(library(lists), [intersection/3]).
    :- protected(containsAll/2).
    containsAll(_, []).
    containsAll(row(Row), Elems):-
@@ -449,6 +515,8 @@
       subtract(Elems, [E], Els1),
       ::includes(Val1,E),
       containsAll(row(Row), Els1).
+   containsAll(list(L),Elems):-
+      intersection(L,Elems,Elems).
 
    :- public(includes/2).
    includes(undef, _):-!,false.
