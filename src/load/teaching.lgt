@@ -109,7 +109,9 @@
                   % Cell::ref(Ref),
                   _Employee_::toColRef(Ref, ColRef),
                   member(ColRef=Definition, HeaderStruct), % Then
-                  ::processStructuredValue(ColRef, Value, Definition, NewValue)
+                  ::processStructuredValue(ColRef, Value, Definition, NewValue1),
+                  \+ _Employee_::emptyValue(NewValue1),
+                  (NewValue1=[_|_] -> member(NewValue, NewValue1); NewValue = NewValue1)
                ), Rels),
             format('COLLECTED: ~w\n',[Rels])
          )
@@ -119,11 +121,12 @@
    :- protected(processStructuredValue/4).
    processStructuredValue(ColRef, Value, Definition, NewValue):-
       ::encodeKD(Elems, Options),
-      ::containsAll(Definition, Elems), !,
+      % (ColRef='H' ->       debugger::trace;true),
+      ::containsAll(Definition, Elems),
       !,
       ::interpreteOptions(ColRef, Value, Options, NewValue).
    processStructuredValue(ColRef, Value, Definition, ColRef=Value):-
-      format("Cell (SCAN TABLE): ~w = ~w (~w)\n",[ColRef, Value, Definition]).
+      format("WARNING noproc: ~w = ~w (~w)\n",[ColRef, Value, Definition]).
 
    :- protected(interpreteOptions/4).
    interpreteOptions(_, Value, [], Value):-!.
@@ -136,14 +139,62 @@
       call(P, ColRef, Value, NewValue).
    interpreteOption(ColRef, Value, exec(P), Value):-!,
       call(P, ColRef, Value).
+   interpreteOption(ColRef, Value, pack(Atom), Atom=Value):-!.
 
    :- protected(encodeKD/2).
-   encodeKD(['курс','семестр'], [convert(::id), exec(::writeNl)]).
-   encodeKD(['препод','код', дисципл, учебн, план], [exec(::ignored)]).
-
+   encodeKD(['курс','семестр'], [convert(::discipName)]).  % Use exec(::writeLn) for debug write
+   encodeKD(['препод','код', дисципл, учебн, план], [exec(::ignored), convert(::undef)]).
+   encodeKD([контингент, студент], [convert(::toInteger), pack(student/no)]).
+   encodeKD([количеств, учебн, групп], [convert(::toInteger), pack(student/group/no)]).
+   encodeKD([наименован, дисциплин], [convert(::stripSpaces), pack(discipline/name)]).
+   encodeKD([код, дисциплин, учебн, план], [convert(::stripSpaces), convert(::disciplineCode)]).
+   encodeKD([лекц, всего], [convert(::toInteger), pack(total/lection/hours)]).
+   encodeKD([практ, семинар, занят, всего], [convert(::toInteger), pack(total/practice/hours)]).
+   encodeKD([лаборат, занят, всего], [convert(::toInteger), pack(total/laboratory/hours)]).
+   encodeKD([лаборат, занят], [convert(::toInteger), pack(laboratory/hours)]).
+   encodeKD([курсов, экзамен], [convert(::toInteger), pack(examination/hours)]).
+   encodeKD([текущ, студент, консультац], [convert(::toInteger), pack(consulting/hours)]).
+   encodeKD([участ, работ, гак], [convert(::toInteger), pack(gak/hours)]).
+   encodeKD([рецензиров, выпускн], [convert(::toInteger), pack(reviewing/hours)]).
+   encodeKD([руководств, выпускн], [convert(::toInteger), pack(supervision/hours)]).
+   encodeKD([практик], [convert(::toInteger), pack(practice/hours)]).
+   encodeKD([всего], [convert(::toInteger), pack(total/hours)]).
 
    :- protected(id/3).
    id(_, A,A).
+
+   :- protected(undef/3).
+   undef(_,_,undef).
+
+   :- protected(toInteger/3).
+   toInteger(_,Atom, Integer):-
+      atom(Atom), !,
+      atom_number(Atom, Number).
+   toInteger(_, Integer, Integer):-
+      integer(Integer),!.
+
+   :- protected(stripSpaces/3).
+   stripSpaces(_, Value, NoSpaceValue):-!,
+      _Employee_::normaizeSpace(Value, NoSpaceValue).
+
+   :- use_module(library(pcre), [re_matchsub/4]).
+   :- protected(discipName/3).
+   discipName(_, Atom, [course/no=A,semester/no=B]):-
+      re_matchsub("(?<a>\\d+)\s*/\s*(?<b>\\d+)"/x, Atom, Dict, []),
+      get_dict(a, Dict, AS),
+      atom_string(A, AS),
+      atom_number(AS, AN),
+      get_dict(b, Dict, BS),
+      atom_string(B, BS),
+      atom_number(B, BN),!.
+   discipName(_, Atom, string=Atom).
+
+   :- protected(disciplineCode/3).
+   disciplineCode(_, Atom, discipline/code=Atom):-
+      re_matchsub("([А-Я]+\\d*)([.][А-Я]*\\d*)*"/x, Atom, Dict, []),!.
+   disciplineCode(_, Atom, undef):-
+      format('WARNING: unrecognized course code: ~w in ~w\n',[Atom, ColRef]).
+
 
    :- protected(writeNl/2).
    writeNl(ColRef, Value):-
@@ -155,13 +206,12 @@
 
    :- protected(containsAll/2).
    containsAll(_, []):-!.
-   containsAll([X|T],Elems):-
+   containsAll(L,Elems):-
+      member(X,L),
       downcase_atom(X, XL),
       subtract(Elems, [E], Els),
       sub_atom(XL,_,_,_,E), !,
-      containsAll([X|T],Els).
-   containsAll([_|T],Elems):-
-      containsAll(T,Elems).
+      containsAll(L,Els).
 
    :- public(valueInCell/2).
    valueInCell(Cell, generic(Value)):-
