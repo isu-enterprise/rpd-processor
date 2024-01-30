@@ -3,6 +3,81 @@
 :- use_module(library(semweb/rdf_db),
               [rdf_save/2]).
 
+% ------------------------------------------- recognition rule categories ---------------------------
+
+:- category(employee_context_rules).
+   :- protected(encodeKD/2).
+   %encodeKD([лаборат, занят, всего], [convert(::toInteger), pack(total/laboratory/hours)]).
+
+   encodeKD([рецензирован, выпускн, работ, бакалавр, специалист, магистр],
+      [convert(::toInteger), pack(reviewing/bach_spec_master/hours)]).
+   encodeKD([руководств,   выпускн, работ, бакалавр, специалист, магистр],
+      [convert(::toInteger), pack(supervision/bach_spec_master/hours)]).
+
+   encodeKD([препод, код, дисципл, учебн, план], [exec(::ignored), convert(::undef)]).
+   encodeKD([обзорн, лекц, консультац, государствен, экзам], [convert(::toInteger), pack(consulting/exams/hours)]).
+   encodeKD([практ, семинар, занят, по, план], [convert(::toInteger), pack(practice/plan/hours)]).
+
+   encodeKD([руководств, аспирант, соискател, стажер], [convert(::toInteger), pack(supervision/postgr_soiskat_stager/hours)]).
+   encodeKD([экспертиз, диссер, исслед, rандидатск], [convert(::toInteger), pack(supervision/candidate/hours)]).
+   encodeKD([экспертиз, диссер, исслед, докторск], [convert(::toInteger), pack(supervision/doctor/hours)]).
+   encodeKD([организац, сопровожден, работ, совет], [convert(::toInteger), pack(dissconsil/organization/hours)]).
+   encodeKD([проверк, реферат, аспирант, докторант], [convert(::toInteger), pack(checking/works/hours)]).
+   encodeKD([государ, участ, гак, экзам], [convert(::toInteger), pack(exams/state/hours)]).
+   encodeKD([практ, семинар, занят, всего], [convert(::toInteger), pack(practice/total/hours)]).
+   encodeKD([лекц, по, план, всего], [convert(::toInteger), pack(lection/plan/hours)]).
+   encodeKD([код, дисциплин, учебн, план], [convert(::stripSpaces), convert(::disciplineCode)]).
+
+   encodeKD([рецензирован, диссертационн, исследован], [convert(::toInteger), pack(reviewing/dissertation/hours)]).
+   encodeKD([руководств, диссертац, совет], [convert(::toInteger), pack(dissconcil/heading/hours)]).
+   encodeKD([количеств, учебн, групп], [convert(::toInteger), pack(student/group/no)]).
+   encodeKD([производ, педагог, практик], [convert(::toInteger), pack(practice/intership/hours)]).
+   encodeKD([научн, докторант, консультац], [convert(::toInteger), pack(consulting/scientific/doctorant/hours)]).
+   encodeKD([текущ, студент, консультац], [convert(::toInteger), pack(consulting/student/hours)]).
+   encodeKD([участ, работ, гак], [convert(::toInteger), pack(scc/hours)]). % state certification commission
+
+   encodeKD([вступительн, экзам], [convert(::toInteger), pack(exams/entrance/hours)]).
+   encodeKD([руководств, магистрант], [convert(::toInteger), pack(supervision/magister/hours)]).
+   encodeKD([рецензиров, выпускн], [convert(::toInteger), pack(reviewing/fqw/hours)]). % Final qualifying work
+   encodeKD([руководств, выпускн], [convert(::toInteger), pack(supervision/fqw/hours)]).
+   encodeKD([контингент, студент], [convert(::toInteger), pack(student/no)]).
+   encodeKD([наименован, дисциплин], [convert(::stripSpaces), pack(discipline/name)]).
+   encodeKD([кандидатск, экзам], [convert(::toInteger), pack(exams/candidate/hours)]).
+   encodeKD([контрольн, работ], [convert(::toInteger), pack(control_work/hours)]).
+   encodeKD([лаборат, занят], [convert(::toInteger), pack(laboratory/hours)]).
+   encodeKD([курсов, экзам], [convert(::toInteger), pack(exams/course/hours)]).
+   encodeKD([курсов, работ], [convert(::toInteger), pack(course_works/hours)]).
+   encodeKD([занят, аспирант], [convert(::toInteger), pack(train/postgr/hours)]).
+   encodeKD([учебн, практик], [convert(::toInteger), pack(practice/education/hours)]).
+   encodeKD([курс, семестр], [convert(::discipName)]).  % Use exec(::writeLn) for debug write
+   encodeKD([лекц, всего], [convert(::toInteger), pack(lection/total/hours)]).
+
+   %encodeKD([практик], [convert(::toInteger), pack(practice/hours)]).
+   encodeKD([зачет], [convert(::toInteger), pack(credit/hours)]).
+   encodeKD([кср], [convert(::toInteger), pack(ksr/hours)]).
+   encodeKD([всего], [convert(::toInteger), pack(total/hours)]).
+
+   :- use_module(library(pcre), [re_matchsub/4]).
+   :- protected(discipName/3).
+   discipName(_, Atom, [course/no=AN,semester/no=BN]):-
+      re_matchsub("(?<a>\\d+)\\s*[/]\\s*(?<b>\\d+)"/x, Atom, Dict, []),
+      get_dict(a, Dict, AS),
+      atom_string(A, AS),
+      atom_number(AS, AN),
+      get_dict(b, Dict, BS),
+      atom_string(B, BS),
+      atom_number(B, BN),!.
+   discipName(_, Atom, string=Atom).
+
+   :- protected(disciplineCode/3).
+   disciplineCode(_, Atom, discipline/code=Atom):-
+      re_matchsub("([А-Я]+\\d*)([.][А-Я]*\\d*)*"/x, Atom, _Dict, []),!.
+   disciplineCode(ColRef, Atom, undef):-
+      format('WARNING: unrecognized course code: ~w at column ~w\n',[Atom, ColRef]).
+:- end_category.
+
+% --------------------------------------------- recognition contextes ------------------------------------
+
 :- object(context(_Employee_), % Recodgnition context / sceraio parts.
    imports(attributes)).
 
@@ -132,66 +207,15 @@
    interpreteOptions(_, Value, [], Value):-!.
    interpreteOptions(ColRef, Value, [Option|Os], NVal):-
       ::interpreteOption(ColRef, Value, Option, NewValue), !,
-      ::interpreteOptions(ColRef, NewValue, Os, NVal).
+      interpreteOptions(ColRef, NewValue, Os, NVal).
 
    :- protected(interpreteOption/4).
    interpreteOption(ColRef, Value, convert(P), NewValue):-!,
       call(P, ColRef, Value, NewValue).
    interpreteOption(ColRef, Value, exec(P), Value):-!,
       call(P, ColRef, Value).
-   interpreteOption(ColRef, undef, pack(_), undef):-!.
-   interpreteOption(ColRef, Value, pack(Atom), Atom=Value):-!.
-
-   :- protected(encodeKD/2).
-   %encodeKD([лаборат, занят, всего], [convert(::toInteger), pack(total/laboratory/hours)]).
-
-   encodeKD([рецензирован, выпускн, работ, бакалавр, специалист, магистр],
-      [convert(::toInteger), pack(reviewing/bach_spec_master/hours)]).
-   encodeKD([руководств,   выпускн, работ, бакалавр, специалист, магистр],
-      [convert(::toInteger), pack(supervision/bach_spec_master/hours)]).
-
-   encodeKD([препод, код, дисципл, учебн, план], [exec(::ignored), convert(::undef)]).
-   encodeKD([обзорн, лекц, консультац, государствен, экзам], [convert(::toInteger), pack(consulting/exams/hours)]).
-   encodeKD([практ, семинар, занят, по, план], [convert(::toInteger), pack(practice/plan/hours)]).
-
-   encodeKD([руководств, аспирант, соискател, стажер], [convert(::toInteger), pack(supervision/postgr_soiskat_stager/hours)]).
-   encodeKD([экспертиз, диссер, исслед, rандидатск], [convert(::toInteger), pack(supervision/candidate/hours)]).
-   encodeKD([экспертиз, диссер, исслед, докторск], [convert(::toInteger), pack(supervision/doctor/hours)]).
-   encodeKD([организац, сопровожден, работ, совет], [convert(::toInteger), pack(dissconsil/organization/hours)]).
-   encodeKD([проверк, реферат, аспирант, докторант], [convert(::toInteger), pack(checking/works/hours)]).
-   encodeKD([государ, участ, гак, экзам], [convert(::toInteger), pack(exams/state/hours)]).
-   encodeKD([практ, семинар, занят, всего], [convert(::toInteger), pack(practice/total/hours)]).
-   encodeKD([лекц, по, план, всего], [convert(::toInteger), pack(lection/plan/hours)]).
-   encodeKD([код, дисциплин, учебн, план], [convert(::stripSpaces), convert(::disciplineCode)]).
-
-   encodeKD([рецензирован, диссертационн, исследован], [convert(::toInteger), pack(reviewing/dissertation/hours)]).
-   encodeKD([руководств, диссертац, совет], [convert(::toInteger), pack(dissconcil/heading/hours)]).
-   encodeKD([количеств, учебн, групп], [convert(::toInteger), pack(student/group/no)]).
-   encodeKD([производ, педагог, практик], [convert(::toInteger), pack(practice/intership/hours)]).
-   encodeKD([научн, докторант, консультац], [convert(::toInteger), pack(consulting/scientific/doctorant/hours)]).
-   encodeKD([текущ, студент, консультац], [convert(::toInteger), pack(consulting/student/hours)]).
-   encodeKD([участ, работ, гак], [convert(::toInteger), pack(scc/hours)]). % state certification commission
-
-   encodeKD([вступительн, экзам], [convert(::toInteger), pack(exams/entrance/hours)]).
-   encodeKD([руководств, магистрант], [convert(::toInteger), pack(supervision/magister/hours)]).
-   encodeKD([рецензиров, выпускн], [convert(::toInteger), pack(reviewing/fqw/hours)]). % Final qualifying work
-   encodeKD([руководств, выпускн], [convert(::toInteger), pack(supervision/fqw/hours)]).
-   encodeKD([контингент, студент], [convert(::toInteger), pack(student/no)]).
-   encodeKD([наименован, дисциплин], [convert(::stripSpaces), pack(discipline/name)]).
-   encodeKD([кандидатск, экзам], [convert(::toInteger), pack(exams/candidate/hours)]).
-   encodeKD([контрольн, работ], [convert(::toInteger), pack(control_work/hours)]).
-   encodeKD([лаборат, занят], [convert(::toInteger), pack(laboratory/hours)]).
-   encodeKD([курсов, экзам], [convert(::toInteger), pack(exams/course/hours)]).
-   encodeKD([курсов, работ], [convert(::toInteger), pack(course_works/hours)]).
-   encodeKD([занят, аспирант], [convert(::toInteger), pack(train/postgr/hours)]).
-   encodeKD([учебн, практик], [convert(::toInteger), pack(practice/education/hours)]).
-   encodeKD([курс, семестр], [convert(::discipName)]).  % Use exec(::writeLn) for debug write
-   encodeKD([лекц, всего], [convert(::toInteger), pack(lection/total/hours)]).
-
-   %encodeKD([практик], [convert(::toInteger), pack(practice/hours)]).
-   encodeKD([зачет], [convert(::toInteger), pack(credit/hours)]).
-   encodeKD([кср], [convert(::toInteger), pack(ksr/hours)]).
-   encodeKD([всего], [convert(::toInteger), pack(total/hours)]).
+   interpreteOption(_, undef, pack(_), undef):-!.
+   interpreteOption(_, Value, pack(Atom), Atom=Value):-!.
 
    :- protected(id/3).
    id(_, A,A).
@@ -200,7 +224,7 @@
    undef(_,_,undef).
 
    :- protected(toInteger/3).
-   toInteger(_,Atom, Integer):-
+   toInteger(_,Atom, Number):-
       atom(Atom), !,
       atom_number(Atom, Number).
    toInteger(_, Integer, Integer):-
@@ -209,25 +233,6 @@
    :- protected(stripSpaces/3).
    stripSpaces(_, Value, NoSpaceValue):-!,
       _Employee_::normaizeSpace(Value, NoSpaceValue).
-
-   :- use_module(library(pcre), [re_matchsub/4]).
-   :- protected(discipName/3).
-   discipName(_, Atom, [course/no=A,semester/no=B]):-
-      re_matchsub("(?<a>\\d+)\\s*[/]\\s*(?<b>\\d+)"/x, Atom, Dict, []),
-      get_dict(a, Dict, AS),
-      atom_string(A, AS),
-      atom_number(AS, AN),
-      get_dict(b, Dict, BS),
-      atom_string(B, BS),
-      atom_number(B, BN),!.
-   discipName(_, Atom, string=Atom).
-
-   :- protected(disciplineCode/3).
-   disciplineCode(_, Atom, discipline/code=Atom):-
-      re_matchsub("([А-Я]+\\d*)([.][А-Я]*\\d*)*"/x, Atom, Dict, []),!.
-   disciplineCode(_, Atom, undef):-
-      format('WARNING: unrecognized course code: ~w in ~w\n',[Atom, ColRef]).
-
 
    :- protected(writeNl/2).
    writeNl(ColRef, Value):-
@@ -309,6 +314,14 @@
 
 :- end_object.
 
+% -----------------------------------------
+
+:- object(employee_context(_Employee_),
+      extends(context(_Employee_)),
+      imports(employee_context_rules)).
+:- end_object.
+
+% -------------------------------------------------------------------------------------
 
 :- object(employee(_FullName_, _Sheet_, _Load_)).
    :- use_module(library(lists), [subtract/3, member/2, nth0/3, nth1/3]).
@@ -624,7 +637,7 @@
       %    Context,
       %    [extends(context)], [], []),
       self(Self),
-      Context = context(Self),
+      Context = employee_context(Self),
       Context::asGraph(Graph).
 
    :- public(row/2).
@@ -633,6 +646,7 @@
 
 :- end_object.
 
+% -------------------------------------------------------------
 
 :- object(teachLoad(_FileName_),
    extends(workbook(_FileName_))).

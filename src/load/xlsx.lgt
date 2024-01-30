@@ -169,8 +169,8 @@
            option(r(NumberS),Attrs),
            atom_number(NumberS,Number),
            Row = row_(_Id_, row(Number, Attrs, Cells)),
-           _WB_::assertz(Row),
-           format('Asserted Row: ~w=~w~n',[_Id_, Number])
+           _WB_::assertz(Row)
+           % , format('Asserted Row: ~w=~w~n',[_Id_, Number])
          )).
          % (
 :- end_object.
