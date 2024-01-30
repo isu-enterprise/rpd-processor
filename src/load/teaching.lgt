@@ -148,7 +148,7 @@
    encodeKD([рецензирован, выпускн, работ, бакалавр, специалист, магистр],
       [convert(::toInteger), pack(reviewing/bach_spec_master/hours)]).
    encodeKD([руководств,   выпускн, работ, бакалавр, специалист, магистр],
-      [convert(::toInteger), pack(heading/bach_spec_master/hours)]).
+      [convert(::toInteger), pack(supervision/bach_spec_master/hours)]).
 
    encodeKD([препод, код, дисципл, учебн, план], [exec(::ignored), convert(::undef)]).
    encodeKD([обзорн, лекц, консультац, государствен, экзам], [convert(::toInteger), pack(consulting/exams/hours)]).
@@ -157,7 +157,7 @@
    encodeKD([руководств, аспирант, соискател, стажер], [convert(::toInteger), pack(supervision/postgr_soiskat_stager/hours)]).
    encodeKD([экспертиз, диссер, исслед, rандидатск], [convert(::toInteger), pack(supervision/candidate/hours)]).
    encodeKD([экспертиз, диссер, исслед, докторск], [convert(::toInteger), pack(supervision/doctor/hours)]).
-   encodeKD([организац, сопровожден, работ, совет], [convert(::toInteger), pack(dissovet/organization/hours)]).
+   encodeKD([организац, сопровожден, работ, совет], [convert(::toInteger), pack(dissconsil/organization/hours)]).
    encodeKD([проверк, реферат, аспирант, докторант], [convert(::toInteger), pack(checking/works/hours)]).
    encodeKD([государ, участ, гак, экзам], [convert(::toInteger), pack(exams/state/hours)]).
    encodeKD([практ, семинар, занят, всего], [convert(::toInteger), pack(practice/total/hours)]).
@@ -165,25 +165,25 @@
    encodeKD([код, дисциплин, учебн, план], [convert(::stripSpaces), convert(::disciplineCode)]).
 
    encodeKD([рецензирован, диссертационн, исследован], [convert(::toInteger), pack(reviewing/dissertation/hours)]).
-   encodeKD([руководств, диссертац, совет], [convert(::toInteger), pack(dissovet/heading/hours)]).
+   encodeKD([руководств, диссертац, совет], [convert(::toInteger), pack(dissconcil/heading/hours)]).
    encodeKD([количеств, учебн, групп], [convert(::toInteger), pack(student/group/no)]).
    encodeKD([производ, педагог, практик], [convert(::toInteger), pack(practice/intership/hours)]).
    encodeKD([научн, докторант, консультац], [convert(::toInteger), pack(consulting/scientific/doctorant/hours)]).
-   encodeKD([текущ, студент, консультац], [convert(::toInteger), pack(consulting/current/student/hours)]).
-   encodeKD([участ, работ, гак], [convert(::toInteger), pack(gak/hours)]).
+   encodeKD([текущ, студент, консультац], [convert(::toInteger), pack(consulting/student/hours)]).
+   encodeKD([участ, работ, гак], [convert(::toInteger), pack(scc/hours)]). % state certification commission
 
    encodeKD([вступительн, экзам], [convert(::toInteger), pack(exams/entrance/hours)]).
    encodeKD([руководств, магистрант], [convert(::toInteger), pack(supervision/magister/hours)]).
-   encodeKD([рецензиров, выпускн], [convert(::toInteger), pack(reviewing/vkr/hours)]).
-   encodeKD([руководств, выпускн], [convert(::toInteger), pack(supervision/vkr/hours)]).
+   encodeKD([рецензиров, выпускн], [convert(::toInteger), pack(reviewing/fqw/hours)]). % Final qualifying work
+   encodeKD([руководств, выпускн], [convert(::toInteger), pack(supervision/fqw/hours)]).
    encodeKD([контингент, студент], [convert(::toInteger), pack(student/no)]).
    encodeKD([наименован, дисциплин], [convert(::stripSpaces), pack(discipline/name)]).
    encodeKD([кандидатск, экзам], [convert(::toInteger), pack(exams/candidate/hours)]).
    encodeKD([контрольн, работ], [convert(::toInteger), pack(control_work/hours)]).
    encodeKD([лаборат, занят], [convert(::toInteger), pack(laboratory/hours)]).
    encodeKD([курсов, экзам], [convert(::toInteger), pack(exams/course/hours)]).
-   encodeKD([курсов, работ], [convert(::toInteger), pack(supervision/course_works/hours)]).
-   encodeKD([занят, аспирант], [convert(::toInteger), pack(train/postgraduate/hours)]).
+   encodeKD([курсов, работ], [convert(::toInteger), pack(course_works/hours)]).
+   encodeKD([занят, аспирант], [convert(::toInteger), pack(train/postgr/hours)]).
    encodeKD([учебн, практик], [convert(::toInteger), pack(practice/education/hours)]).
    encodeKD([курс, семестр], [convert(::discipName)]).  % Use exec(::writeLn) for debug write
    encodeKD([лекц, всего], [convert(::toInteger), pack(lection/total/hours)]).
