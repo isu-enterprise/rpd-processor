@@ -29,7 +29,7 @@
       %E::headerStruct(HS),
       %write(HS), nl, halt,
       % E::asGraph(Graph),
-      Graph='http://isu.ru/imit/it-chair/employee/fereferov-evgeny-sergeevich',
+      Graph=it:'fereferov-evgeny-sergeevich',
       E::asGraph(Graph),
       format('Graph:~w\n',[Graph]),
 

@@ -3,9 +3,73 @@
 :- use_module(library(semweb/rdf_db),
               [rdf_save/2]).
 
+
+:- category(rdf_namespaces).
+   % :- op()
+   :- public(namespace/2).
+
+   namespace(sch, 'https://schema.org/').
+   namespace(cnt, 'http://www.w3.org/2011/content#').
+   namespace(dbr, 'http://dbpedia.org/resource/').
+   namespace(bibo, 'http://purl.org/ontology/bibo/').
+   namespace(brick,'https://brickschema.org/schema/Brick#').
+   namespace(csvw,'http://www.w3.org/ns/csvw#').
+   namespace(dc,'http://purl.org/dc/elements/1.1/').
+   namespace(dcat,'http://purl.org/spar/datacite/').
+   namespace(dcmitype,'http://purl.org/dc/dcmitype/').
+   namespace(dcterms,'http://purl.org/dc/terms/').
+   namespace(dcam,'http://purl.org/dc/dcam/').
+   namespace(doap,'http://usefulinc.com/ns/doap#').
+   namespace(foaf,'http://xmlns.com/foaf/0.1/').
+   namespace(odrl2,'http://www.w3.org/ns/odrl/2/').
+   namespace(org,'http://www.w3.org/ns/org#').
+   namespace(owl,'http://www.w3.org/2002/07/owl#').
+   namespace(prof,'http://www.w3.org/ns/dx/prof/').
+   namespace(prov,'http://www.w3.org/ns/prov#').
+   namespace(qb,'http://purl.org/linked-data/cube#').
+   namespace(rdf,'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
+   namespace(rdfs,'http://www.w3.org/2000/01/rdf-schema#').
+   namespace(sdo,'https://schema.org/').
+   namespace(sh,'http://www.w3.org/ns/shacl#').
+   namespace(skos,'http://www.w3.org/2004/02/skos/core#').
+   namespace(sosa,'http://www.w3.org/ns/sosa/').
+   namespace(ssn,'http://www.w3.org/ns/ssn/').
+   namespace(time,'http://www.w3.org/2006/time#').
+   namespace(vann,'http://purl.org/vocab/vann/').
+   namespace(void,'http://rdfs.org/ns/void#').
+   namespace(wgs,'https://www.w3.org/2003/01/geo/wgs84_pos#').
+   namespace(xsd,'http://www.w3.org/2001/XMLSchema#').
+
+:- end_category.
+
+:- category(isu_namespaces,
+      extends(rdf_namespaces)).
+   namespace(schema,'https://schema.org/').
+   namespace(Abbrev, URI):-
+      ^^namespace(Abbrev, URI). % Namespace would not be redefined during extension
+   % local namespaces.
+   namespace(it,'http://irnok.net/ontologies/database/isu/it-chair/employee').
+   namespace(wpdb,'http://irnok.net/ontologies/database/isu/workprog#').
+   namespace(wpdd,'http://irnok.net/ontologies/isu/workprog#').
+   namespace(idb, 'http://irnok.net/ontologies/database/isu/studplan#').
+   namespace(idd, 'http://irnok.net/ontologies/isu/studplan#').
+
+   namespace(libdb, 'http://irnok.net/ontologies/database/isu/library#').
+   namespace(libdd, 'http://irnok.net/ontologies/isu/library#').
+   namespace(bibframe, 'http://id.loc.gov/ontologies/bibframe/').
+:- end_category.
+
 % ------------------------------------------- recognition rule categories ---------------------------
 
 :- category(employee_context_rules).
+
+   :- protected(fieldSet/1).
+   fieldSet([  'кафедра:'=chair/label
+             , 'фио:'=teacher/full/name
+             , 'индивидуальный расчёт учебной нагрузки преподавателя на '=load/years  % TODO: DOES NOT WORK
+             , 'должность:'=ext(teacher/position,[right,down])
+             , 'размер ставки:'=teacher/rate/share]).
+
    :- protected(encodeKD/2).
    %encodeKD([лаборат, занят, всего], [convert(::toInteger), pack(total/laboratory/hours)]).
 
@@ -63,7 +127,7 @@
       re_matchsub("(?<a>\\d+)\\s*[/]\\s*(?<b>\\d+)"/x, Atom, Dict, []),
       get_dict(a, Dict, AS),
       atom_string(A, AS),
-      atom_number(AS, AN),
+      atom_number(A, AN),
       get_dict(b, Dict, BS),
       atom_string(B, BS),
       atom_number(B, BN),!.
@@ -74,12 +138,17 @@
       re_matchsub("([А-Я]+\\d*)([.][А-Я]*\\d*)*"/x, Atom, _Dict, []),!.
    disciplineCode(ColRef, Atom, undef):-
       format('WARNING: unrecognized course code: ~w at column ~w\n',[Atom, ColRef]).
+
+   :- protected(generateFromFields/0).
+   generateFromFields.
+
+
 :- end_category.
 
 % --------------------------------------------- recognition contextes ------------------------------------
 
 :- object(context(_Employee_), % Recodgnition context / sceraio parts.
-   imports(attributes)).
+   imports([attributes, isu_namespaces])).
 
    :- use_module(library(semweb/rdf11), [rdf/4,rdf_bnode/1,rdf_assert/4, rdf_is_iri/1,
                                          rdf_retractall/4, rdf_create_bnode/1
@@ -89,7 +158,6 @@
 
    :- public(graph/1).
    graph(IRI):-
-      rdf_is_iri(IRI),
       ::clear, % Clear state.
       ::clear_attributes, % clear all attribute data.
       ::set_attribute(graph, IRI).
@@ -110,12 +178,13 @@
      _Employee_::toRowRef(FieldTerm, FieldTermRow),
      ::fields(1, FieldTermRow), !,
      ::dump_attributes, !,
+     ::generateFromFields,
      _Employee_::toDown(HeaderBottom, TableTop),
      ::footer(TableTop, FooterTop), !,
      _Employee_::toUp(FooterTop, TableBottom),
      _Employee_::buildHeaderStruct, !,
      _Employee_::headerStruct(HS), !,
-     ::scanTable(HS, TableTop, TableBottom). % Including ends
+     ::scanTable(HS, TableTop, TableBottom).
 
    :- public(header/2).
    header(HRow, HRef):-
@@ -130,14 +199,10 @@
 
    :- public(fields/2).
    fields(S,E):-
+      ::fieldSet(FS), !,
       forall(
              ::cell(S,E, Cell),
-             ::field(Cell,
-                ['кафедра:'=chair/label,
-                 'фио:'=teacher/full/name,
-                 'преподавателя на'=load/years,
-                 'должность:'=ext(teacher/position,[right,down]),
-                 'размер ставки:'=teacher/rate/share])).
+             ::field(Cell, FS)).
 
    :- public(field/2).
    field(_, []):-!.
