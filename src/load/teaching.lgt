@@ -45,21 +45,27 @@
                                          ]).
    :- public(global_id/2).
    global_id(Abbrev:Atom, IRI):-
-      nonvar(Abbrev), nonvar(Atom), var(IRI),!,
+      nonvar(Abbrev), nonvar(Atom),!,
       ::namespace(Abbrev, NS), !,
       atom_concat(NS, Atom, IRI).
    global_id(Abbrev:Atom, IRI):-
-      var(Abbrev), nonvar(Atom), nonvar(IRI),!,
+      nonvar(Atom), nonvar(IRI),!,
       sub_atom(IRI,_,L,0,Atom),
       sub_atom(IRI,0,L,_,NS),
       ::namespace(Abbrev, NS).
    global_id(Abbrev:Atom, IRI):-
-      nonvar(Abbrev), var(Atom), nonvar(IRI),!,
+      nonvar(Abbrev), nonvar(IRI),!,
       ::namespace(Abbrev, NS), !,
       sub_atom(IRI,0,L,A,NS),
       sub_atom(IRI,L,A,0,Atom).
    global_id(IRI,IRI):-
       rdf_is_iri(IRI),!.
+
+   :- op(700, xfx, ~~).
+   :- protected(equalResource/2).
+   equalResource(A,B) :-
+      global_id(A,URIA),
+      global_id(B,URIA).
 
 :- end_category.
 
@@ -170,6 +176,12 @@
 
 :- object(context(_Employee_), % Recodgnition context / sceraio parts.
    imports([attributes, isu_namespaces])).
+
+   :- op(700, xfx, ~~).
+   % :- initialization(( ::global_id(rdf:typeOf, ID),
+   %      ::equalResource(ID, rdf:typeOf),
+   %      write('OK COMP\n') )).
+
 
    :- use_module(library(semweb/rdf11), [rdf/4,rdf_bnode/1,rdf_assert/4, rdf_is_iri/1,
                                          rdf_retractall/4, rdf_create_bnode/1
