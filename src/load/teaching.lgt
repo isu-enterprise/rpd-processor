@@ -113,7 +113,8 @@
                   \+ _Employee_::emptyValue(NewValue1),
                   (NewValue1=[_|_] -> member(NewValue, NewValue1); NewValue = NewValue1)
                ), Rels),
-            format('COLLECTED: ~w\n',[Rels])
+            Row::ref(RowRef),
+            format('COLLECTED: ~w: ~w\n',[RowRef, Rels])
          )
       ),
       !.
@@ -121,7 +122,6 @@
    :- protected(processStructuredValue/4).
    processStructuredValue(ColRef, Value, Definition, NewValue):-
       ::encodeKD(Elems, Options),
-      % (ColRef='H' ->       debugger::trace;true),
       ::containsAll(Definition, Elems),
       !,
       ::interpreteOptions(ColRef, Value, Options, NewValue).
@@ -139,25 +139,58 @@
       call(P, ColRef, Value, NewValue).
    interpreteOption(ColRef, Value, exec(P), Value):-!,
       call(P, ColRef, Value).
+   interpreteOption(ColRef, undef, pack(_), undef):-!.
    interpreteOption(ColRef, Value, pack(Atom), Atom=Value):-!.
 
    :- protected(encodeKD/2).
-   encodeKD(['курс','семестр'], [convert(::discipName)]).  % Use exec(::writeLn) for debug write
-   encodeKD(['препод','код', дисципл, учебн, план], [exec(::ignored), convert(::undef)]).
-   encodeKD([контингент, студент], [convert(::toInteger), pack(student/no)]).
-   encodeKD([количеств, учебн, групп], [convert(::toInteger), pack(student/group/no)]).
-   encodeKD([наименован, дисциплин], [convert(::stripSpaces), pack(discipline/name)]).
+   %encodeKD([лаборат, занят, всего], [convert(::toInteger), pack(total/laboratory/hours)]).
+
+   encodeKD([рецензирован, выпускн, работ, бакалавр, специалист, магистр],
+      [convert(::toInteger), pack(reviewing/bach_spec_master/hours)]).
+   encodeKD([руководств,   выпускн, работ, бакалавр, специалист, магистр],
+      [convert(::toInteger), pack(heading/bach_spec_master/hours)]).
+
+   encodeKD([препод, код, дисципл, учебн, план], [exec(::ignored), convert(::undef)]).
+   encodeKD([обзорн, лекц, консультац, государствен, экзам], [convert(::toInteger), pack(consulting/exams/hours)]).
+   encodeKD([практ, семинар, занят, по, план], [convert(::toInteger), pack(practice/plan/hours)]).
+
+   encodeKD([руководств, аспирант, соискател, стажер], [convert(::toInteger), pack(supervision/postgr_soiskat_stager/hours)]).
+   encodeKD([экспертиз, диссер, исслед, rандидатск], [convert(::toInteger), pack(supervision/candidate/hours)]).
+   encodeKD([экспертиз, диссер, исслед, докторск], [convert(::toInteger), pack(supervision/doctor/hours)]).
+   encodeKD([организац, сопровожден, работ, совет], [convert(::toInteger), pack(dissovet/organization/hours)]).
+   encodeKD([проверк, реферат, аспирант, докторант], [convert(::toInteger), pack(checking/works/hours)]).
+   encodeKD([государ, участ, гак, экзам], [convert(::toInteger), pack(exams/state/hours)]).
+   encodeKD([практ, семинар, занят, всего], [convert(::toInteger), pack(practice/total/hours)]).
+   encodeKD([лекц, по, план, всего], [convert(::toInteger), pack(lection/plan/hours)]).
    encodeKD([код, дисциплин, учебн, план], [convert(::stripSpaces), convert(::disciplineCode)]).
-   encodeKD([лекц, всего], [convert(::toInteger), pack(total/lection/hours)]).
-   encodeKD([практ, семинар, занят, всего], [convert(::toInteger), pack(total/practice/hours)]).
-   encodeKD([лаборат, занят, всего], [convert(::toInteger), pack(total/laboratory/hours)]).
-   encodeKD([лаборат, занят], [convert(::toInteger), pack(laboratory/hours)]).
-   encodeKD([курсов, экзамен], [convert(::toInteger), pack(examination/hours)]).
-   encodeKD([текущ, студент, консультац], [convert(::toInteger), pack(consulting/hours)]).
+
+   encodeKD([рецензирован, диссертационн, исследован], [convert(::toInteger), pack(reviewing/dissertation/hours)]).
+   encodeKD([руководств, диссертац, совет], [convert(::toInteger), pack(dissovet/heading/hours)]).
+   encodeKD([количеств, учебн, групп], [convert(::toInteger), pack(student/group/no)]).
+   encodeKD([производ, педагог, практик], [convert(::toInteger), pack(practice/intership/hours)]).
+   encodeKD([научн, докторант, консультац], [convert(::toInteger), pack(consulting/scientific/doctorant/hours)]).
+   encodeKD([текущ, студент, консультац], [convert(::toInteger), pack(consulting/current/student/hours)]).
    encodeKD([участ, работ, гак], [convert(::toInteger), pack(gak/hours)]).
-   encodeKD([рецензиров, выпускн], [convert(::toInteger), pack(reviewing/hours)]).
-   encodeKD([руководств, выпускн], [convert(::toInteger), pack(supervision/hours)]).
-   encodeKD([практик], [convert(::toInteger), pack(practice/hours)]).
+
+   encodeKD([вступительн, экзам], [convert(::toInteger), pack(exams/entrance/hours)]).
+   encodeKD([руководств, магистрант], [convert(::toInteger), pack(supervision/magister/hours)]).
+   encodeKD([рецензиров, выпускн], [convert(::toInteger), pack(reviewing/vkr/hours)]).
+   encodeKD([руководств, выпускн], [convert(::toInteger), pack(supervision/vkr/hours)]).
+   encodeKD([контингент, студент], [convert(::toInteger), pack(student/no)]).
+   encodeKD([наименован, дисциплин], [convert(::stripSpaces), pack(discipline/name)]).
+   encodeKD([кандидатск, экзам], [convert(::toInteger), pack(exams/candidate/hours)]).
+   encodeKD([контрольн, работ], [convert(::toInteger), pack(control_work/hours)]).
+   encodeKD([лаборат, занят], [convert(::toInteger), pack(laboratory/hours)]).
+   encodeKD([курсов, экзам], [convert(::toInteger), pack(exams/course/hours)]).
+   encodeKD([курсов, работ], [convert(::toInteger), pack(supervision/course_works/hours)]).
+   encodeKD([занят, аспирант], [convert(::toInteger), pack(train/postgraduate/hours)]).
+   encodeKD([учебн, практик], [convert(::toInteger), pack(practice/education/hours)]).
+   encodeKD([курс, семестр], [convert(::discipName)]).  % Use exec(::writeLn) for debug write
+   encodeKD([лекц, всего], [convert(::toInteger), pack(lection/total/hours)]).
+
+   %encodeKD([практик], [convert(::toInteger), pack(practice/hours)]).
+   encodeKD([зачет], [convert(::toInteger), pack(credit/hours)]).
+   encodeKD([кср], [convert(::toInteger), pack(ksr/hours)]).
    encodeKD([всего], [convert(::toInteger), pack(total/hours)]).
 
    :- protected(id/3).
@@ -180,7 +213,7 @@
    :- use_module(library(pcre), [re_matchsub/4]).
    :- protected(discipName/3).
    discipName(_, Atom, [course/no=A,semester/no=B]):-
-      re_matchsub("(?<a>\\d+)\s*/\s*(?<b>\\d+)"/x, Atom, Dict, []),
+      re_matchsub("(?<a>\\d+)\\s*[/]\\s*(?<b>\\d+)"/x, Atom, Dict, []),
       get_dict(a, Dict, AS),
       atom_string(A, AS),
       atom_number(AS, AN),
