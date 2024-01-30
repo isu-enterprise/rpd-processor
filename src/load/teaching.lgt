@@ -40,6 +40,27 @@
    namespace(wgs,'https://www.w3.org/2003/01/geo/wgs84_pos#').
    namespace(xsd,'http://www.w3.org/2001/XMLSchema#').
 
+   :- use_module(library(semweb/rdf11), [rdf/4,rdf_bnode/1,rdf_assert/4, rdf_is_iri/1,
+                                         rdf_retractall/4, rdf_create_bnode/1
+                                         ]).
+   :- public(global_id/2).
+   global_id(Abbrev:Atom, IRI):-
+      nonvar(Abbrev), nonvar(Atom), var(IRI),!,
+      ::namespace(Abbrev, NS), !,
+      atom_concat(NS, Atom, IRI).
+   global_id(Abbrev:Atom, IRI):-
+      var(Abbrev), nonvar(Atom), nonvar(IRI),!,
+      sub_atom(IRI,_,L,0,Atom),
+      sub_atom(IRI,0,L,_,NS),
+      ::namespace(Abbrev, NS).
+   global_id(Abbrev:Atom, IRI):-
+      nonvar(Abbrev), var(Atom), nonvar(IRI),!,
+      ::namespace(Abbrev, NS), !,
+      sub_atom(IRI,0,L,A,NS),
+      sub_atom(IRI,L,A,0,Atom).
+   global_id(IRI,IRI):-
+      rdf_is_iri(IRI),!.
+
 :- end_category.
 
 :- category(isu_namespaces,
@@ -48,7 +69,7 @@
    namespace(Abbrev, URI):-
       ^^namespace(Abbrev, URI). % Namespace would not be redefined during extension
    % local namespaces.
-   namespace(it,'http://irnok.net/ontologies/database/isu/it-chair/employee').
+   namespace(it,'http://irnok.net/ontologies/database/isu/it-chair/employee#').
    namespace(wpdb,'http://irnok.net/ontologies/database/isu/workprog#').
    namespace(wpdd,'http://irnok.net/ontologies/isu/workprog#').
    namespace(idb, 'http://irnok.net/ontologies/database/isu/studplan#').
@@ -157,7 +178,9 @@
    :- use_module(library(option), [option/2]).
 
    :- public(graph/1).
-   graph(IRI):-
+   graph(IRIi):-
+      ::global_id(IRIi,IRI),
+      format('INFO: Constructing graph ~w\n',[IRI]),
       ::clear, % Clear state.
       ::clear_attributes, % clear all attribute data.
       ::set_attribute(graph, IRI).
